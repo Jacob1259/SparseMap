@@ -487,7 +487,7 @@ print('decoded perm')
 print([cantor_decode(initial_values["perm_code"][i],7) for i in range(5) ])
 #print(initial_values['perm_code'])
 
-#print(mapping_encoding_len)
+
 
 instrum = ng.p.Instrumentation(
     map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
