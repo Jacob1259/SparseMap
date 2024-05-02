@@ -1,0 +1,51 @@
+# template.j2
+
+mapping:
+  - target: DRAM
+    type: temporal
+    permutation: CMNPQRS
+    factors: C=1 M=8 N=1 P=3 Q=2 R=1 S=4
+
+  - target: GlobelBuffer
+    type: temporal
+    permutation: SRQPNMC
+    factors: C=1 M=3 N=1 P=3 Q=27 R=1 S=1
+
+  - target: GlobelBuffer
+    type: spatial
+    permutation: MSNPCRQ
+    split: 1
+    factors: C=1 M=4 N=4 P=3 Q=1 R=2 S=1
+
+  - target: PE_buffer
+    type: temporal
+    permutation: CMNPQRS
+    factors: C=1 M=1 N=1 P=1 Q=1 R=1 S=1
+
+  - target: PE_buffer
+    type: spatial
+    permutation: CRSPMNQ
+    split: 3
+    factors: C=3 M=1 N=1 P=2 Q=1 R=6 S=3
+
+  - target: GlobelBuffer
+    type: datatype
+    bypass:
+    
+      - Inputs
+    
+      - Outputs
+    
+  
+
+  - target: PE_buffer
+    type: datatype
+    bypass:
+    
+      - Inputs
+    
+      - Outputs
+    
+
+
+  

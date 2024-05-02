@@ -1,0 +1,7 @@
+mapper:
+  optimization-metric: [ delay, energy ]
+  algorithm:           hybrid 
+  timeout:             0
+  victory-condition:   0
+  search-size:         50
+  sync-interval:       500
