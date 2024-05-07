@@ -50,56 +50,15 @@ architecture:
         name: MAC[0..63]
       name: PE[0..255]
   version: 0.3
-mapping:
-- bypass:
-  - Inputs
-  - Outputs
-  keep:
-  - Weights
-  stream: []
-  target: PE_buffer
-  type: datatype
-- bypass:
-  - Inputs
-  - Outputs
-  keep:
-  - Weights
-  stream: []
-  target: GlobelBuffer
-  type: datatype
-- bypass: []
-  keep:
-  - Weights
-  - Inputs
-  - Outputs
-  stream:
-  - Weights
-  - Inputs
-  - Outputs
-  target: DRAM
-  type: datatype
-- factors: C3 M1 R3 S3 N1 P2 Q1
-  permutation: CRSPMNQ
-  split: 3
-  target: PE_buffer
-  type: spatial
-- factors: C1 M1 R4 S1 N1 P9 Q6
-  permutation: RPQCMSN
-  target: PE_buffer
-  type: temporal
-- factors: C1 M8 R1 S2 N2 P3 Q1
-  permutation: MSNPCRQ
-  split: 1
-  target: GlobelBuffer
-  type: spatial
-- factors: C1 M12 R1 S1 N2 P1 Q3
-  permutation: MNQCRSP
-  target: GlobelBuffer
-  type: temporal
-- factors: C1 M1 R1 S2 N1 P1 Q3
-  permutation: SQCMRNP
-  target: DRAM
-  type: temporal
+mapper:
+  algorithm: random-pruned
+  optimization-metric:
+  - delay
+  - energy
+  search-size: 50000
+  sync-interval: 500
+  timeout: 0
+  victory-condition: 0
 problem:
   instance:
     C: 3

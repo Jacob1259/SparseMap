@@ -51,24 +51,24 @@ architecture:
       name: PE[0..255]
   version: 0.3
 mapping:
-- factors: C=1 M=8 N=1 P=3 Q=2 R=1 S=4
-  permutation: CMNPQRS
+- factors: C=1 M=6 N=1 P=1 Q=3 R=1 S=2
+  permutation: SQCMRNP
   target: DRAM
   type: temporal
-- factors: C=1 M=3 N=1 P=3 Q=27 R=1 S=1
-  permutation: SRQPNMC
+- factors: C=1 M=2 N=2 P=1 Q=3 R=1 S=1
+  permutation: MNQCRSP
   target: GlobelBuffer
   type: temporal
-- factors: C=1 M=4 N=4 P=3 Q=1 R=2 S=1
+- factors: C=1 M=8 N=2 P=3 Q=1 R=1 S=2
   permutation: MSNPCRQ
   split: 1
   target: GlobelBuffer
   type: spatial
-- factors: C=1 M=1 N=1 P=1 Q=1 R=1 S=1
-  permutation: CMNPQRS
+- factors: C=1 M=1 N=1 P=9 Q=6 R=4 S=1
+  permutation: RPQCMSN
   target: PE_buffer
   type: temporal
-- factors: C=3 M=1 N=1 P=2 Q=1 R=6 S=3
+- factors: C=3 M=1 N=1 P=2 Q=1 R=3 S=3
   permutation: CRSPMNQ
   split: 3
   target: PE_buffer

@@ -480,14 +480,19 @@ initial_values = {
 
 
 
-print('+++++++++++++++++++++++++++++++++++++++++++++++    BASE LINE    +++++++++++++++++++++++++++++++++++++++++++++++++++')
-print('decoded mapping:')
-print(map_decode(initial_values['map_code']))
-print('decoded perm')
-print([cantor_decode(initial_values["perm_code"][i],7) for i in range(5) ])
+#print('+++++++++++++++++++++++++++++++++++++++++++++++    BASE LINE    +++++++++++++++++++++++++++++++++++++++++++++++++++')
+#print('decoded mapping:')
+#print(map_decode(initial_values['map_code']))
+#print('decoded perm')
+#print([cantor_decode(initial_values["perm_code"][i],7) for i in range(5) ])
 #print(initial_values['perm_code'])
 
 
+
+instrum = ng.p.Instrumentation(
+    map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
+    perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040)
+    )
 
 instrum = ng.p.Instrumentation(
     map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
@@ -513,7 +518,12 @@ dict = ng.p.Dict(
 #print(child)
 
 #optimizer = ng.optimizers.NGOpt(parametrization=instrum, budget=100)
-optimizer = ng.optimizers.PortfolioDiscreteOnePlusOne(parametrization=instrum, budget=10000, num_workers=10)
+#optimizer = ng.optimizers.DifferentialEvolution()
+#optimizer = ng.optimizers.TwoPointsDE(parametrization=instrum, budget=1000, num_workers=10)
+#optimizer = ng.optimizers.TBPSA(parametrization=instrum, budget=1000, num_workers=10)
+#optimizer = ng.optimizers.CMA(parametrization=instrum, budget=1000, num_workers=10)
+optimizer = ng.optimizers.PortfolioDiscreteOnePlusOne(parametrization=instrum, budget=1000, num_workers=10)
+
 
 optimizer.suggest(map_code =  [4,0,1,2,2,2,0,1,2,4,2,3,3,3,3,0,1,3,3,4,0,2,4], 
                   perm_code =[cantor_encode(root_state['permutations'][0]), 
@@ -521,6 +531,7 @@ optimizer.suggest(map_code =  [4,0,1,2,2,2,0,1,2,4,2,3,3,3,3,0,1,3,3,4,0,2,4],
                   cantor_encode(root_state['permutations'][2]), 
                   cantor_encode(root_state['permutations'][3]),
                   cantor_encode(root_state['permutations'][4])])
+
 
 
 for _ in range(optimizer.budget):
@@ -539,8 +550,21 @@ recommendation = optimizer.provide_recommendation()
 print(recommendation.value)
 print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
 
-'''
-recommendation = optimizer.minimize(target)
-print(recommendation.value)
-print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
-'''
+
+
+
+#print(optimizer.llambda)
+
+
+population = optimizer.ask()
+
+for i in range(len(population)):
+    indi = population[i]
+    print("================================  individual {} ===============================".format(i))
+    print(indi.value)
+    
+#recommendation = optimizer.minimize(target)
+#print(recommendation.value)
+#print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
+
+

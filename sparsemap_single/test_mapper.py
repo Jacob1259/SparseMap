@@ -104,10 +104,11 @@ def main():
 
 
     base_output_dir = os.path.join(this_directory, "outputs")
-    output_file_path = os.path.join(base_output_dir, job_name, 'outputs', "timeloop-model.map+stats.xml")
+    output_file_path = os.path.join(base_output_dir, job_name, 'outputs', "timeloop-mapper.map+stats.xml")
+    print(output_file_path)
     if os.path.exists(output_file_path):
         job_output_stats = parse_timeloop_stats(output_file_path)
-        os.remove(output_file_path)
+        #os.remove(output_file_path)
         print(job_output_stats[stat_type])
     else:
         print("no_output!")

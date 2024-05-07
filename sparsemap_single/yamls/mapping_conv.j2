@@ -14,7 +14,7 @@ mapping:
   - target: {{ 'GlobelBuffer' }}
     type: {{ 'spatial' }}
     permutation: {{ permutation_GB_S }}
-    split: {{ split_GB_to_PEB }}
+    split: {{ split_DRAM_to_GB }}
     factors: {{ factors_GB_S }}
 
   - target: {{ 'PE_buffer' }}
@@ -25,7 +25,7 @@ mapping:
   - target: {{ 'PE_buffer' }}
     type: {{ 'spatial' }}
     permutation: {{ permutation_PEB_S }}
-    split: {{ split_DRAM_to_GB }}
+    split: {{ split_GB_to_PEB }}
     factors: {{ factors_PEB_S }}
 
   - target: {{ 'GlobelBuffer' }}
