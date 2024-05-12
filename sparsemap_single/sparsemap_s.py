@@ -13,6 +13,8 @@ import shutil, argparse, pprint, sys, subprocess
 import random
 from datetime import datetime
 
+##这个文件是三层存储的ES的简单拷贝
+
 
 this_file = os.path.abspath(inspect.getfile(inspect.currentframe()))
 directory = os.path.dirname(this_file)
@@ -97,9 +99,9 @@ DNA_SIZE = 77            # DNA
 
 '''
 
-N_GENERATIONS = 20
-POP_SIZE = 1000           # population size
-N_KID = 500               # n kids per generation
+N_GENERATIONS = 200
+POP_SIZE = 100           # population size
+N_KID = 50               # n kids per generation
 
 def prime_factorization(n):
     factors = []

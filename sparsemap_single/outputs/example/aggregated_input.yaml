@@ -52,11 +52,10 @@ architecture:
   version: 0.3
 mapper:
   algorithm: random-pruned
-  optimization-metric:
-  - delay
-  - energy
-  search-size: 50000
-  sync-interval: 500
+  num-threads: 1
+  optimization-metric: delay
+  search-size: 2000
+  sync-interval: 5
   timeout: 0
   victory-condition: 0
 problem:

@@ -1,7 +1,5 @@
-import nevergrad as ng
-import inspect
-from copy import deepcopy
-import shutil, argparse, pprint, sys, subprocess
+import numpy as np
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -10,31 +8,37 @@ from jinja2 import Template
 from jinja2 import Environment, FileSystemLoader
 import yaml
 import os
-import random
-from datetime import datetime
-
-'''
-def square(x):
-    return sum((x - 0.5) ** 2+x**6)
-
-# optimization on x as an array of shape (2,)
-optimizer = ng.optimizers.NGOpt(parametrization=5, budget=100)
-recommendation = optimizer.minimize(square)  # best value
-print(recommendation.value)
-'''
-
-
 import inspect
 from copy import deepcopy
 import shutil, argparse, pprint, sys, subprocess
 import random
 from datetime import datetime
+import csv
+
+#五层存储的ES  此版本暂时只考虑mapping
 
 OVERWRITE = 1
 
-
 dimensions = {'C': 3, 'M': 96, 'N': 4, 'P': 54, 'Q': 54, 'R': 12, 'S': 12}
 
+N_GENERATIONS = 200
+POP_SIZE = 100           # population size
+N_KID = 50               # n kids per generation
+
+OBJECT = 'cycles'       #优化目标
+'''
+    'problem': problem,
+    'utilization': arithmetic_utilization,
+    'cycles': max_cycles,
+    'energy_pJ': energy_pJ,
+    'energy_per_mac': energy_pJ/macs,
+    'macs': macs,
+    'energy_breakdown_pJ': energy_breakdown_pJ,
+    'bandwidth_and_cycles': bandwidth_and_cycles
+
+    '''
+
+##质因数分解
 def prime_factorization(n):
     factors = []
     divisor = 2
@@ -47,9 +51,6 @@ def prime_factorization(n):
 
     return factors
 
-
-
-
 cf = prime_factorization(dimensions['C'])
 mf = prime_factorization(dimensions['M'])
 nf = prime_factorization(dimensions['N'])
@@ -57,9 +58,7 @@ pf = prime_factorization(dimensions['P'])
 qf = prime_factorization(dimensions['Q'])
 rf = prime_factorization(dimensions['R'])
 sf = prime_factorization(dimensions['S'])
-
-
-factor_list = [cf,mf,nf,pf,qf,rf,sf]
+factor_list = [cf,mf,nf,pf,qf,rf,sf]                    #质因数汇总
 
 lc = len(cf)
 lm = len(mf)
@@ -68,11 +67,20 @@ ls = len(sf)
 ln = len(nf)
 lp = len(pf)
 lq = len(qf)
-
-len_list = [lc,lm,ln,lp,lq,lr,ls]
+len_list = [lc,lm,ln,lp,lq,lr,ls]                       #每个维度的质因数长度
 
 mapping_encoding_len = lc+lm+lr+ls+ln+lp+lq
 
+def map_encode(size):
+    size_code = []
+    for dim_index in range(7):
+        factors_of_dim = factor_list[dim_index]
+        for factor in factors_of_dim:
+            for i in range(5):
+                if size[i][dim_index]%factor == 0:
+                    size[i][dim_index] = size[i][dim_index]//factor
+                    size_code.append(i)
+    return size_code
 
 def map_decode(code):
     size = [[1,1,1,1,1,1,1]for _ in range(5)]
@@ -82,26 +90,6 @@ def map_decode(code):
             size[code[start+j]][i] *= factor_list[i][j]
         start = start + len_list[i]
     return size
-
-
-def map_encode(size):
-    size_code = []
-    for i in range(7):
-        for j in range(len_list[i]):
-            factor = size[j][i] // factor_list[i][j]
-            index = 0
-            while factor > 1:
-                if factor % factor_list[i][j] == 0:
-                    factor //= factor_list[i][j]
-                    index += 1
-                else:
-                    break
-            size_code.extend([index] * (j + 1))
-    return size_code
-
-
-#code = [4,2,3,2,1,4,1,2,0,0,1,3,4,0,2,1,2,1,2,3,1,2,1]
-#print(decode(code))
 
 def cantor_encode(permutation):
     n = len(permutation)
@@ -131,7 +119,7 @@ def cantor_decode(encoded, n):
             factorial //= (n-i-1)
     return permutation
 
-
+#run_timeloop负责调用sparseloopp
 def run_timeloop(job_name, input_dict, base_dir, ert_path, art_path):
     output_dir = os.path.join(base_dir +"/outputs")
    
@@ -173,30 +161,28 @@ def run_timeloop(job_name, input_dict, base_dir, ert_path, art_path):
             os.remove(path)
         return 
 
-
-
-def evaluate(state):                                    #indi是长度63的np array
-
+#evaluate  输入一个individual,返回优化目标的评估值  这个版本暂时只考虑maping  individual是numpy       待修改
+def evaluate(individal):                                    
 
     dimension = ['C','M','N','P','Q','R','S']
     
     #----------------------------------------------------  解码mapping  ------------------------------------------------------
-
-    mapping = state['array']
     
+    mapping = map_decode(individal[83:83+mapping_encoding_len].tolist())
+
     
 
     #print(dimention_factors)
-    split_DRAM_to_GB = state['split'][0]
-    split_GB_to_PEB = state['split'][1]
+    split_DRAM_to_GB = individal[74]
+    split_GB_to_PEB = individal[75]
 
-    permutation_DRAM_T_order = state['permutations'][0]
+    permutation_DRAM_T_order = cantor_decode(individal[78],7)
     #print("per = ",permutation_DRAM_T_order)
-    permutation_GB_T_order = state['permutations'][1]
+    permutation_GB_T_order = cantor_decode(individal[79],7)
     #print("per = ",permutation_GB_T_order)
-    permutation_GB_S_order = state['permutations'][2]
-    permutation_PEB_T_order = state['permutations'][3]
-    permutation_PEB_S_order = state['permutations'][4]
+    permutation_GB_S_order = cantor_decode(individal[80],7)
+    permutation_PEB_T_order = cantor_decode(individal[81],7)
+    permutation_PEB_S_order = cantor_decode(individal[82],7)
 
     permutation_DRAM_T_str = (dimension[permutation_DRAM_T_order[0]] + dimension[permutation_DRAM_T_order[1]] + dimension[permutation_DRAM_T_order[2]]
                   + dimension[permutation_DRAM_T_order[3]] + dimension[permutation_DRAM_T_order[4]] + dimension[permutation_DRAM_T_order[5]]
@@ -310,8 +296,8 @@ def evaluate(state):                                    #indi是长度63的np ar
                         'S='+str(dimention_factors[4]['S']))
 
     
-    bypass_GB = state['bypass_choice'][0]
-    bypass_PEB = state['bypass_choice'][1]
+    bypass_GB = individal[76]
+    bypass_PEB = individal[77]
 
     #iwo = ['Weights','Inputs','Outputs']
     iwo_GB = []
@@ -367,12 +353,12 @@ def evaluate(state):                                    #indi是长度63的np ar
     # 读取模板文件
     #print(os.getcwd())
     
-    #this_file_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
-    this_directory = '/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single'
-    #print("this_direc = ",this_directory)
-    os.chdir('/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single')
+    this_file_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
+    this_directory = os.path.dirname(this_file_path)
+    print("this_direc = ",this_directory)
+    #os.chdir(this_directory)
     #print(os.getcwd())
-    with open('/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single/yamls/mapping_conv.j2', 'r') as template_file_mapping:
+    with open('yamls/mapping_conv.j2', 'r') as template_file_mapping:
         template_content_mapping = template_file_mapping.read()
 
     # 创建 Jinja2 模板对象
@@ -382,7 +368,7 @@ def evaluate(state):                                    #indi是长度63的np ar
     rendered_yaml_mapping = template_mapping.render(mapping_variables)
 
     # 将生成的 YAML 内容写入文件
-    with open('/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single/yamls/mapping_conv_output_MCTS.yaml', 'w') as output_file_mapping:
+    with open('yamls/mapping_conv_output_MCTS.yaml', 'w') as output_file_mapping:
         output_file_mapping.write(rendered_yaml_mapping)
 
 #----------------------------------------------调用sparse_loop-------------------------------------------------------
@@ -436,7 +422,7 @@ def evaluate(state):                                    #indi是长度63的np ar
 
 #------------------------------------------------------读取数据--------------------------------------------------------------
 #++++++++++++++++++++++++++++++++++++++++++++++++本实验优化目标+++++++++++++++++++++++++++++++++++++++++
-    stat_type = "cycles"
+    stat_type = OBJECT
     '''
     'problem': problem,
     'utilization': arithmetic_utilization,
@@ -460,124 +446,139 @@ def evaluate(state):                                    #indi是长度63的np ar
         fitness = 10000000000000000000
     return fitness
 
-#dimension = ['C','M','N','P','Q','R','S']
+DNA_SIZE = 83+mapping_encoding_len            # DNA 
 
+'''
+[0,29]          Input 压缩格式           uop---0    b---1    cp---2    rle---3
+[30,49]         Weight 压缩格式          uop---0    b---1    cp---2    rle---3
+[50,69]         Output 压缩格式          uop---0    b---1    cp---2    rle---3
+[70,71]         GlobleBuffer 中的 skip/gate
+[72,73]            PE_Buffer 中的 skip/gate
+[74,75]                    split 位置
+[76,77]                    bypass_choice
+[78,82]                    cantor编码的permutation
+[83,83+len_list+1]         map_size  编码
 
-root_state = {
-    'permutations': [[6,4,0,1,5,2,3],[1,2,4,0,5,6,3],[1,6,2,3,0,5,4],[5,3,4,0,1,6,2],[0,5,6,3,1,2,4]],
-    'bypass_choice': [5, 5],
-    'array': np.array([[1,6,1,1,3,1,2],[1,2,2,1,3,1,1],[1,8,2,3,1,1,2],[1,1,1,9,6,4,1],[3,1,1,2,1,3,3]]),
-    'split': [3,1]
-}
+'''
+def roulette_wheel_selection(numbers):        #输入适应度表，输出一个随概率选择的索引号
+    # 计算总的适应度值（这里假设适应度值就是数字本身）
+    total_fitness = sum(numbers)
+    # 计算每个数字的选择概率（适应度值越高，被选中的概率越大）
+    probabilities = [num / total_fitness for num in numbers]
 
-def target(map_code,perm_code):   #这里的code都是Numpy的  map是长度为mapping_encoding_len的一维，perm长度为5          优化目标函数
-    state = root_state
-    state['permutations'] = [cantor_decode(perm_code[i],7) for i in range(5) ]
-    state['array'] = np.array(map_decode(map_code))
-    a = evaluate(state)
-    if a != 10000000000000000000:
-        print(a)
-    return a
+    # 生成一个随机概率值
+    random_prob = random.random()
+    cumulative_prob = 0
+    for i, prob in enumerate(probabilities):
+        cumulative_prob += prob
+        if random_prob <= cumulative_prob:
+            selected_idx = i
+            break     
+    return selected_idx
 
-
-
-initial_values = {
-    "map_code": [4,0,1,2,2,2,0,1,2,4,2,3,3,3,3,0,1,3,3,4,0,2,4],  # 使用相同的初始值示例
-    "perm_code": [cantor_encode(root_state['permutations'][0]), 
-                  cantor_encode(root_state['permutations'][1]),
-                  cantor_encode(root_state['permutations'][2]), 
-                  cantor_encode(root_state['permutations'][3]),
-                  cantor_encode(root_state['permutations'][4])]  # 使用特定的初始值示例
-}
-
-
-
-
-#print('+++++++++++++++++++++++++++++++++++++++++++++++    BASE LINE    +++++++++++++++++++++++++++++++++++++++++++++++++++')
-#print('decoded mapping:')
-#print(map_decode(initial_values['map_code']))
-#print('decoded perm')
-#print([cantor_decode(initial_values["perm_code"][i],7) for i in range(5) ])
-#print(initial_values['perm_code'])
-
-
-
-instrum = ng.p.Instrumentation(
-    map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
-    perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040)
-    )
-
-instrum = ng.p.Instrumentation(
-    map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
-    perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040)
-    )
-
-
-dict = ng.p.Dict(
-    map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
-    perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040)
-    )
-
-
-# 打印计算后的参数值
-#print("计算后的参数值:")
-#print(kwargs)
-
-
-
-#child = instrum.spawn_child()
-#@child.value = ((),initial_values)
-
-#print(child)
-
-#optimizer = ng.optimizers.NGOpt(parametrization=instrum, budget=100)
-#optimizer = ng.optimizers.DifferentialEvolution()
-#optimizer = ng.optimizers.TwoPointsDE(parametrization=instrum, budget=1000, num_workers=10)
-#optimizer = ng.optimizers.TBPSA(parametrization=instrum, budget=1000, num_workers=10)
-#optimizer = ng.optimizers.CMA(parametrization=instrum, budget=1000, num_workers=10)
-optimizer = ng.optimizers.PortfolioDiscreteOnePlusOne(parametrization=instrum, budget=1000, num_workers=10)
-
-
-optimizer.suggest(map_code =  [4,0,1,2,2,2,0,1,2,4,2,3,3,3,3,0,1,3,3,4,0,2,4], 
-                  perm_code =[cantor_encode(root_state['permutations'][0]), 
-                  cantor_encode(root_state['permutations'][1]),
-                  cantor_encode(root_state['permutations'][2]), 
-                  cantor_encode(root_state['permutations'][3]),
-                  cantor_encode(root_state['permutations'][4])])
-
-
-
-for _ in range(optimizer.budget):
+def population_initialize(inin_path):
     
-    x = optimizer.ask()
-    if _ == 0 :
-        print('==========================================================initialize================================================================')
-        print(x.kwargs)
-    else:
-        print('======================================================={} st search point============================================================'.format(_))
-        print(x.kwargs)
-    loss = target(*x.args, **x.kwargs)
-    optimizer.tell(x, loss)
+    pop_list = []
+    # 创建一个长度为10的空列表来存储每行第一个数
+    first_numbers_devided_by1 = []
+    with open(inin_path, mode='r') as file:
+        reader = csv.reader(file)
+        # 逐行读取CSV文件
+        for row in reader:
+            # 获取每行的第一个数，并将其添加到first_numbers列表中
+            first_number = int(row[0])  # 假设第一个数是整数
+            first_numbers_devided_by1.append(1/first_number)
+        for i in range(POP_SIZE):
+            indi = [0 for m in range(POP_SIZE)]
+            row_idx = roulette_wheel_selection(first_numbers_devided_by1)
+            for _ in range(row_idx-1):
+                next(reader)
+            target_row = next(reader)
+            data_list = target_row[1:]
+            indi[70:DNA_SIZE] = data_list
+            pop_list.append(indi)
+    population = np.array(pop_list)
 
-recommendation = optimizer.provide_recommendation()
-print(recommendation.value)
-print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
-
-
-
-
-#print(optimizer.llambda)
-
-
-population = optimizer.ask()
-
-for i in range(len(population)):
-    indi = population[i]
-    print("================================  individual {} ===============================".format(i))
-    print(indi.value)
-    
-#recommendation = optimizer.minimize(target)
-#print(recommendation.value)
-#print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
+    return population
 
 
+def select_order(population, fitness):
+    # 根据适应度对个体进行排序的索引
+    sorted_indices = np.argsort(fitness)[::-1]
+
+    # 选择排名前n的个体及其适应度
+    selected_population = population[sorted_indices[:POP_SIZE - N_KID]]
+    selected_fitness = fitness[sorted_indices[:POP_SIZE - N_KID]]
+
+    return selected_population, selected_fitness
+
+
+def crossover(parents, n_kid):
+    kids = []
+    for i in range(n_kid):
+        selected_indices = np.random.choice(parents.shape[0], size=2, replace=False)
+        parent1 = parents[selected_indices[0]]
+        parent2 = parents[selected_indices[1]]
+        crossover_point = np.random.randint(79, 83+mapping_encoding_len-1)                               #决定染色体交叉点
+        kid = np.concatenate([parent1[:crossover_point], parent2[crossover_point:]])
+        kids.append(kid)
+    return np.array(kids)
+
+def mutate(parents, n_kid):                    #暂时只用mutate产生子代
+    kids = []
+    for i in range(n_kid):
+        selected_indices = np.random.choice(parents.shape[0], size=1, replace=False)
+        parent = parents[selected_indices]
+        kid = parent.copy()
+        mutate_choice = np.random.randint(0,2)
+        if mutate_choice == 0:
+            cantor_mutate_position = np.random.randint(78,83)        #康托展开变异位置
+            p_or_m = np.random.randint(0,2)               #加还是减
+            if p_or_m == 0:
+                kid[cantor_mutate_position] = (kid[cantor_mutate_position]+1)//5040
+            else:
+                kid[cantor_mutate_position] = (kid[cantor_mutate_position]-1)//5040
+        else:
+            mapsize_mutate_position = np.random.randint(83,83+mapping_encoding_len)        #mapsize变异位置
+            p_or_m = np.random.randint(0,2)               #加还是减
+            if p_or_m == 0:
+                kid[mapsize_mutate_position] = (kid[cantor_mutate_position]+1)//5040
+            else:
+                kid[mapsize_mutate_position] = (kid[cantor_mutate_position]-1)//5040
+
+        kids.append(kid)
+    return np.array(kids)
+
+def envolve(population,fitness):                                     
+    selected_population, parents_fitness = select_order(population, fitness)   #从上一代中挑出50个
+    kids = mutate(selected_population, N_KID)                
+    kids_fitness = np.array([evaluate(indi) for indi in kids])                                                    #生成子代       
+    next_generation_candidates = np.concatenate([selected_population, kids])  
+    fitness = np.append(parents_fitness,kids_fitness)
+    return next_generation_candidates, fitness
+
+
+def main():
+    initialize_path = reading_path = "/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single/outputs/example/outputs/initialize_mappings_found.csv"
+    population = population_initialize()
+    fitness = np.array([evaluate(indi) for indi in population])
+    generation_best_individual = []
+    generation_best_performance = []
+
+    for i in range(N_GENERATIONS):
+        population,fitness = envolve(population,fitness)
+        best_indi_index = np.argmax(fitness)
+        generation_best_individual.append(population[best_indi_index,:].tolist())
+        generation_best_performance.append(fitness[best_indi_index])
+        print("=====================================================================\n")
+        print("GENERATION = ",i)
+        print("Best performance is",fitness[best_indi_index])
+        print("=====================================================================\n")
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    np.savetxt(formatted_now +'_best_individual.txt', generation_best_individual)
+    np.savetxt(formatted_now +'_best_performance.txt', generation_best_performance)
+
+
+if __name__ == "__main__":
+    main()

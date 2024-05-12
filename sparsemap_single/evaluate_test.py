@@ -14,6 +14,13 @@ import shutil, argparse, pprint, sys, subprocess
 import random
 from datetime import datetime
 
+
+##这个文件用来测试evaluate函数，输入为字典state,只描述mapping
+
+
+
+
+
 OVERWRITE = 1
 
 dimensions = {'C': 1, 'M': 2, 'R': 3, 'S': 4, 'N': 5, 'P': 6, 'Q': 7}
