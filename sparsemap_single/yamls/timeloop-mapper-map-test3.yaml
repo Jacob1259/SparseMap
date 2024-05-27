@@ -2,9 +2,8 @@ mapping:
   - target: PE_buffer
     type: datatype
     keep:
-      []
-    bypass:
       - Weights
+    bypass:
       - Inputs
       - Outputs
     stream:
@@ -12,9 +11,8 @@ mapping:
   - target: GlobelBuffer
     type: datatype
     keep:
-      []
-    bypass:
       - Weights
+    bypass:
       - Inputs
       - Outputs
     stream:
@@ -33,23 +31,23 @@ mapping:
       - Outputs
   - target: PE_buffer
     type: spatial
-    factors: C32 M1 R1 S1 N1 P1 Q1
-    permutation: CMRSNPQ
-    split: 1
+    factors: C1 M2 R1 S3 N1 P1 Q8
+    permutation: QSMCRNP
+    split: 2
   - target: PE_buffer
     type: temporal
-    factors: C1 M4 R1 S1 N1 P1 Q1
+    factors: C1 M2 R1 S1 N1 P1 Q1
     permutation: MCRSNPQ
   - target: GlobelBuffer
     type: spatial
-    factors: C1 M8 R1 S1 N1 P2 Q4
-    permutation: QPMCRSN
-    split: 1
+    factors: C1 M4 R1 S1 N1 P32 Q2
+    permutation: MQPCRSN
+    split: 2
   - target: GlobelBuffer
     type: temporal
-    factors: C1 M1 R1 S1 N1 P4 Q4
-    permutation: PQCMRSN
+    factors: C3 M2 R3 S1 N1 P1 Q1
+    permutation: RCMSNPQ
   - target: DRAM
     type: temporal
-    factors: C4 M4 R3 S3 N1 P2 Q1
-    permutation: RCPMSNQ
+    factors: C1 M2 R1 S1 N1 P1 Q2
+    permutation: QMCRSNP

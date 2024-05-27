@@ -1,0 +1,126 @@
+# template.j2
+sparse_optimizations:
+  targets:
+  
+    - name: DRAM
+      representation-format:
+        data-spaces:
+        
+          - name: Inputs
+            ranks:
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: CP
+            
+              - format: RLE
+            
+              - format: B
+            
+              - format: CP
+            
+              - format: B
+            
+        
+          - name: Weights
+            ranks:
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: CP
+            
+              - format: B
+            
+              - format: B
+            
+              - format: CP
+            
+              - format: RLE
+            
+        
+  
+    - name: GlobelBuffer
+      representation-format:
+        data-spaces:
+        
+          - name: Inputs
+            ranks:
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: CP
+            
+              - format: RLE
+            
+              - format: B
+            
+              - format: CP
+            
+              - format: B
+            
+        
+          - name: Weights
+            ranks:
+            
+              - format: B
+            
+              - format: CP
+            
+              - format: RLE
+            
+        
+  
+    - name: PE_buffer
+      representation-format:
+        data-spaces:
+        
+          - name: Inputs
+            ranks:
+            
+              - format: RLE
+            
+              - format: B
+            
+              - format: CP
+            
+              - format: B
+            
+        
+          - name: Weights
+            ranks:
+            
+              - format: B
+            
+              - format: CP
+            
+              - format: RLE
+            
+        
+  
+
+  
+    - name: GlobelBuffer
+      action-optimization:
+        - type: skipping
+          options:
+            - target: Inputs
+              condition-on: [ Weights ]
+  
+    - name: GlobelBuffer
+      action-optimization:
+        - type: skipping
+          options:
+            - target: Weights
+              condition-on: [ Inputs ]
+  
+

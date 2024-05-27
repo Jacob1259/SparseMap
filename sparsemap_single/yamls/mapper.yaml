@@ -1,8 +1,8 @@
 mapper:
-  algorithm: random-pruned
+  algorithm: random
   num-threads: 1
   optimization-metric: delay
-  search-size: 2000
+  search-size: 20000
   sync-interval: 5
   timeout: 0
   victory-condition: 0

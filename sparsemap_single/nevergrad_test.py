@@ -31,9 +31,17 @@ import random
 from datetime import datetime
 
 OVERWRITE = 1
-
+JOB = "resnet_conv"              #高层次
+WORK_LOAD = "workload_resnet_conv4"        #低层次
 
 dimensions = {'C': 3, 'M': 96, 'N': 4, 'P': 54, 'Q': 54, 'R': 12, 'S': 12}
+
+problem_template_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single/yamls", JOB , WORK_LOAD + ".yaml")
+with open(problem_template_path, 'r') as file:
+        workload_data = yaml.safe_load(file)
+        d = workload_data['problem']['instance']
+        dimensions = d
+print(dimensions)
 
 def prime_factorization(n):
     factors = []
@@ -321,7 +329,7 @@ def evaluate(state):                                    #indi是长度63的np ar
     bypass_GB = bypass_GB%4
     b = bypass_GB//2
     if b == 1:
-        iwo_GB.append('Weight')
+        iwo_GB.append('Weights')
     bypass_GB = bypass_GB%2
     if bypass_GB == 1:
         iwo_GB.append('Outputs')
@@ -333,7 +341,7 @@ def evaluate(state):                                    #indi是长度63的np ar
     bypass_PEB = bypass_PEB%4
     b = bypass_PEB//2
     if b == 1:
-        iwo_PEB.append('Weight')
+        iwo_PEB.append('Weights')
     bypass_PEB = bypass_PEB%2
     if bypass_PEB == 1:
         iwo_PEB.append('Outputs')
@@ -389,7 +397,7 @@ def evaluate(state):                                    #indi是长度63的np ar
 
     
     
-    problem_template_path = os.path.join(this_directory,"yamls", "workload_example.yaml")
+    problem_template_path = os.path.join(this_directory, "yamls", JOB , WORK_LOAD + ".yaml")
     arch_path = os.path.join(this_directory, "yamls","arch_edge.yaml")
     #component_path = os.path.join(this_directory, "..", "multiSCNN","fig13_dstc_setup","input_specs",  "compound_components.yaml")
     mapping_path = os.path.join(this_directory,"yamls", "mapping_conv_output_MCTS.yaml")
@@ -465,119 +473,101 @@ def evaluate(state):                                    #indi是长度63的np ar
 
 root_state = {
     'permutations': [[6,4,0,1,5,2,3],[1,2,4,0,5,6,3],[1,6,2,3,0,5,4],[5,3,4,0,1,6,2],[0,5,6,3,1,2,4]],
-    'bypass_choice': [5, 5],
+    'bypass_choice': [7, 7],
     'array': np.array([[1,6,1,1,3,1,2],[1,2,2,1,3,1,1],[1,8,2,3,1,1,2],[1,1,1,9,6,4,1],[3,1,1,2,1,3,3]]),
-    'split': [3,1]
+    'split': [1,2]
 }
 
-def target(map_code,perm_code):   #这里的code都是Numpy的  map是长度为mapping_encoding_len的一维，perm长度为5          优化目标函数
+def target(map_code,perm_code,bypass_choice):   #这里的code都是Numpy的  map是长度为mapping_encoding_len的一维，perm长度为5          优化目标函数
     state = root_state
     state['permutations'] = [cantor_decode(perm_code[i],7) for i in range(5) ]
     state['array'] = np.array(map_decode(map_code))
+    state['bypass_choice'] = bypass_choice
     a = evaluate(state)
     if a != 10000000000000000000:
         print(a)
     return a
 
 
+def main():
+    initial_indi = {
+        "map_code": [0,1,4,1,4,1,1,2,4,2,4,2,4,2,1,2,1,1,1,2,2,2,3,0],  # 使用相同的初始值示例
+        
+        #"perm_code": [cantor_encode(root_state['permutations'][0]), 
+         #           cantor_encode(root_state['permutations'][1]),
+         #           cantor_encode(root_state['permutations'][2]), 
+         #           cantor_encode(root_state['permutations'][3]),
+         #           cantor_encode(root_state['permutations'][4])]  # 使用特定的初始值示例
 
-initial_values = {
-    "map_code": [4,0,1,2,2,2,0,1,2,4,2,3,3,3,3,0,1,3,3,4,0,2,4],  # 使用相同的初始值示例
-    "perm_code": [cantor_encode(root_state['permutations'][0]), 
-                  cantor_encode(root_state['permutations'][1]),
-                  cantor_encode(root_state['permutations'][2]), 
-                  cantor_encode(root_state['permutations'][3]),
-                  cantor_encode(root_state['permutations'][4])]  # 使用特定的初始值示例
-}
-
-
-
-
-#print('+++++++++++++++++++++++++++++++++++++++++++++++    BASE LINE    +++++++++++++++++++++++++++++++++++++++++++++++++++')
-#print('decoded mapping:')
-#print(map_decode(initial_values['map_code']))
-#print('decoded perm')
-#print([cantor_decode(initial_values["perm_code"][i],7) for i in range(5) ])
-#print(initial_values['perm_code'])
-
-
-
-instrum = ng.p.Instrumentation(
-    map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
-    perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040)
-    )
-
-instrum = ng.p.Instrumentation(
-    map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
-    perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040)
-    )
+        "perm_code":[619,2524,3052,3619,91] ,
+        "bypass_choice" : [4,2]
+    }
+   
+    instrum = ng.p.Instrumentation(
+        map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
+        perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040),
+        bypass_choice = ng.p.Array(shape=(2,)).set_integer_casting().set_bounds(lower=0, upper=7)
+        )
 
 
-dict = ng.p.Dict(
-    map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
-    perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040)
-    )
+    #print(child)
 
+    #optimizer = ng.optimizers.NGOpt(parametrization=instrum, budget=100)
+    #optimizer = ng.optimizers.DifferentialEvolution()
+    #optimizer = ng.optimizers.TwoPointsDE(parametrization=instrum, budget=1000, num_workers=10)
+    #optimizer = ng.optimizers.TBPSA(parametrization=instrum, budget=1000, num_workers=10)
+    #optimizer = ng.optimizers.CMA(parametrization=instrum, budget=1000, num_workers=10)
+    #optimizer = ng.optimizers.PortfolioDiscreteOnePlusOne(parametrization=instrum, budget=1000, num_workers=10)
+    optimizer = ng.optimizers.OnePlusOne(parametrization=instrum, budget=50, num_workers=10)
 
-# 打印计算后的参数值
-#print("计算后的参数值:")
-#print(kwargs)
-
-
-
-#child = instrum.spawn_child()
-#@child.value = ((),initial_values)
-
-#print(child)
-
-#optimizer = ng.optimizers.NGOpt(parametrization=instrum, budget=100)
-#optimizer = ng.optimizers.DifferentialEvolution()
-#optimizer = ng.optimizers.TwoPointsDE(parametrization=instrum, budget=1000, num_workers=10)
-#optimizer = ng.optimizers.TBPSA(parametrization=instrum, budget=1000, num_workers=10)
-#optimizer = ng.optimizers.CMA(parametrization=instrum, budget=1000, num_workers=10)
-optimizer = ng.optimizers.PortfolioDiscreteOnePlusOne(parametrization=instrum, budget=1000, num_workers=10)
-
-
-optimizer.suggest(map_code =  [4,0,1,2,2,2,0,1,2,4,2,3,3,3,3,0,1,3,3,4,0,2,4], 
-                  perm_code =[cantor_encode(root_state['permutations'][0]), 
-                  cantor_encode(root_state['permutations'][1]),
-                  cantor_encode(root_state['permutations'][2]), 
-                  cantor_encode(root_state['permutations'][3]),
-                  cantor_encode(root_state['permutations'][4])])
-
-
-
-for _ in range(optimizer.budget):
     
-    x = optimizer.ask()
-    if _ == 0 :
-        print('==========================================================initialize================================================================')
-        print(x.kwargs)
-    else:
-        print('======================================================={} st search point============================================================'.format(_))
-        print(x.kwargs)
-    loss = target(*x.args, **x.kwargs)
-    optimizer.tell(x, loss)
-
-recommendation = optimizer.provide_recommendation()
-print(recommendation.value)
-print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
-
-
-
-
-#print(optimizer.llambda)
-
-
-population = optimizer.ask()
-
-for i in range(len(population)):
-    indi = population[i]
-    print("================================  individual {} ===============================".format(i))
-    print(indi.value)
+    optimizer.suggest(map_code = initial_indi['map_code'], 
+                    perm_code = initial_indi['perm_code'],
+                    bypass_choice = initial_indi['bypass_choice'])
     
-#recommendation = optimizer.minimize(target)
-#print(recommendation.value)
-#print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
+
+    init_popu = [initial_indi for i in range(10) ] 
+    optimizer.internal_population = init_popu
+
+    for _ in range(optimizer.budget):
+        x = optimizer.ask()
+        if _ == 0 :
+            print('==========================================================initialize================================================================')
+            print(x.kwargs)
+        else:
+            print('======================================================={} st search point============================================================'.format(_))
+            print(x.kwargs)
+        loss = target(*x.args, **x.kwargs)
+        optimizer.tell(x, loss)
+
+    recommendation = optimizer.provide_recommendation()
+    print(recommendation)
+    print(recommendation.value)
+    print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code'],recommendation.value[1]['bypass_choice']))
+    #print(optimizer.llambda)
+    population = optimizer.ask()
+    '''
+    for i in range(len(population)):
+        indi = population[i]
+        print("================================  individual {} ===============================".format(i))
+        print(indi.value)
+    '''
+    #recommendation = optimizer.minimize(target)
+    #print(recommendation.value)
+    #print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code']))
+
+
+
+if __name__ == "__main__":
+    main()
+    '''
+    map_code =  [4,0,1,2,2,2,0,1,2,4,2,3,3,3,3,0,1,3,3,4,0,2,4] 
+    perm_code =[cantor_encode(root_state['permutations'][0]), 
+                    cantor_encode(root_state['permutations'][1]),
+                    cantor_encode(root_state['permutations'][2]), 
+                    cantor_encode(root_state['permutations'][3]),
+                    cantor_encode(root_state['permutations'][4])] 
+    target(map_code,perm_code)
+    '''
 
 

@@ -47,7 +47,7 @@ sparse_optimizations:
               - format: CP
               - format: CP
               - format: CP
-                payload-word-bits: 6
+                #payload-word-bits: 6
 
           
                 
@@ -74,7 +74,7 @@ sparse_optimizations:
               - format: UOP
               - format: B
               - format: CP
-                payload-word-bits: 5
+                #payload-word-bits: 5
                 
           - name: Weights  # C S R M
             ranks:
@@ -108,9 +108,9 @@ sparse_optimizations:
               - format: UOP
               - format: UOP
               - format: B
-                metadata-word-bits: 5
+                #metadata-word-bits: 5
               - format: CP
-                payload-word-bits: 5
+                #payload-word-bits: 5
               
 
           - name: Weights      # C S R M
@@ -118,7 +118,7 @@ sparse_optimizations:
               #- format: UOP
               #- format: UOP
               #- format: UOP  
-              #- format: UOP     
+              - format: CP     
               - format: CP
               - format: CP
               - format: CP
@@ -128,29 +128,12 @@ sparse_optimizations:
 
     - name: DRAM
       action-optimization:
-        - type: gating
-          options:
-            - target: Outputs
-              condition-on: [ Inputs ]
-
-
-    - name: GlobelBuffer
-      action-optimization:
-        - type: gating
+        - type: skipping
           options:
             - target: Weights
               condition-on: [ Inputs ]
+    
 
-
-#    - name: PE_buffer
-#      action-optimization:
-#       - type: gating
-#          options:
-#            - target: Outputs
-#              condition-on: [ Inputs ]
-   
-
-
-#    - name: MAC
-#      compute-optimization:
-#      - type: gating
+    - name: MAC
+      compute-optimization:
+      - type: gating

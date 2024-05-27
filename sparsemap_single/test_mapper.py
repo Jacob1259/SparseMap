@@ -13,13 +13,14 @@ print("hello")
 this_file_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
 this_directory = os.path.dirname(this_file_path)
 print("this_directory = ",this_directory)
-problem_template_path = os.path.join(this_directory, "yamls", "workload_example.yaml")
+problem_template_path = os.path.join(this_directory, "yamls", "resnet_conv","workload_resnet_conv4.yaml")
 print("problem_template_path = ",problem_template_path)
 #arch_path = os.path.join(this_directory,"sparsemap_single", "yamls", "DSTC-RF2x-24-bandwidth.yaml")
-arch_path = os.path.join(this_directory, "yamls", "arch_edge.yaml")
+arch_path = os.path.join(this_directory, "yamls", "arch_edge_new.yaml")
 #component_path = os.path.join(this_directory, "..", "multiSCNN","fig13_dstc_setup","input_specs",  "compound_components.yaml")
-mapping_path = os.path.join(this_directory, "yamls","mapping_example.yaml")
+mapping_path = os.path.join(this_directory, "yamls","mapping_conv_output.yaml")
 mapper_path = os.path.join(this_directory, "yamls", "mapper.yaml")
+constraints_path = os.path.join(this_directory, "yamls", "constraints.yaml")
 sparse_opt_path = os.path.join(this_directory, "yamls", "sparse_opt_example.yaml")
 #sparse_opt_path = os.path.join(this_directory, "..", "multiSCNN","single_core_optimization",  "yaml_gen", "sparse_opt_output.yaml")
 
@@ -66,6 +67,7 @@ def main():
     #components = yaml.load(open(component_path), Loader = yaml.SafeLoader)
     #mapping = yaml.load(open(mapping_path), Loader = yaml.SafeLoader)
     mapper = yaml.load(open(mapper_path), Loader = yaml.SafeLoader)
+    constraints = yaml.load(open(constraints_path), Loader = yaml.SafeLoader)
     #sparse_opt = yaml.load(open(sparse_opt_path), Loader = yaml.SafeLoader)
     
     output_base_dir = os.path.join(this_directory, "outputs")
@@ -81,6 +83,7 @@ def main():
     #aggregated_input.update(components)
     #aggregated_input.update(mapping)
     aggregated_input.update(mapper)
+    aggregated_input.update(constraints)
     #aggregated_input.update(sparse_opt)
     
     job_name  = "example"

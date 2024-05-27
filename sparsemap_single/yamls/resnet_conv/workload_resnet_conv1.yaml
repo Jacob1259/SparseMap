@@ -2,19 +2,19 @@ problem:
   instance:
     C: 3     #输入通道
     Hdilation: 1         
-    Hstride: 4         #纵向步长
-    M: 96              #卷积核个数 = 输出通道数
-    N: 4                  #batch
-    P: 54              #输出的长宽
-    Q: 54              
-    R: 12              #卷积核长宽
-    S: 12
+    Hstride: 1         #纵向步长
+    M: 64              #卷积核个数 = 输出通道数
+    N: 1                  #batch
+    P: 32              #输出的长宽
+    Q: 32              
+    R: 3              #卷积核长宽
+    S: 3
     Wdilation: 1
-    Wstride: 4
+    Wstride: 1
     densities:
-      Inputs: 0.25
-      Weights: 0.5
-      Outputs: 0.5
+      Inputs: 0.56
+      Weights: 0.67
+      Outputs: 0.55
   shape:
     coefficients:
     - default: 1

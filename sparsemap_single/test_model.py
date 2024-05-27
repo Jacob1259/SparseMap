@@ -12,20 +12,28 @@ print("hello")
 
 this_file_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
 this_directory = os.path.dirname(this_file_path)
-#print("this_directory = ",this_directory)
-problem_template_path = os.path.join(this_directory, "yamls", "workload_example.yaml")
+print("this_directory = ",this_directory)
+#problem_template_path = os.path.join(this_directory, "yamls", "workload_example.yaml")
+#problem_template_path = os.path.join(this_directory, "yamls", "resnet_conv","workload_resnet_conv4.yaml")
+problem_template_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig1","workload", "spmspm.prob.0.4.yaml")
+#problem_template_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig13_dstc_setup","input_specs",  "prob.yaml")
 #print("problem_template_path = ",problem_template_path)
-#arch_path = os.path.join(this_directory,"sparsemap_single", "yamls", "DSTC-RF2x-24-bandwidth.yaml")
-arch_path = os.path.join(this_directory, "yamls", "arch_edge.yaml")
+#arch_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig13_dstc_setup","input_specs",  "architecture.yaml")
+#arch_path = os.path.join(this_directory, "yamls", "arch_edge_new.yaml")
+arch_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig1","arch",  "arch.yaml")
 #component_path = os.path.join(this_directory, "..", "multiSCNN","fig13_dstc_setup","input_specs",  "compound_components.yaml")
-mapping_path = os.path.join(this_directory, "outputs","example","outputs","timeloop-mapper.map.yaml")
-#mapping_path = os.path.join(this_directory, "yamls","mapping_conv_output_MCTS.yaml")
+#mapping_path = os.path.join(this_directory, "outputs","example","outputs","timeloop-mapper.map.yaml")
+#mapping_path = os.path.join(this_directory, "yamls", "timeloop-mapper-map-resconv4.yaml")
+#mapping_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig13_dstc_setup","input_specs",  "Os-mapping.yaml")
+mapping_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig1","outputs", "output_0.4_bitmask", "timeloop-mapper.map.yaml")
 #print("mapping_path = ",mapping_path)
 #if os.path.exists(mapping_path):
 #    print("路径存在")
 mapper_path = os.path.join(this_directory, "yamls", "mapper.yaml")
 #sparse_opt_path = os.path.join(this_directory, "yamls", "sparse_opt_example.yaml")
-#sparse_opt_path = os.path.join(this_directory, "..", "multiSCNN","single_core_optimization",  "yaml_gen", "sparse_opt_output.yaml")
+#sparse_opt_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig13_dstc_setup","input_specs",  "sparse-opt.yaml")
+#sparse_opt_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig1",  "sparse-opt","bitmask.skip.yaml")
+sparse_opt_path = os.path.join(this_directory, "..", "..","evaluation_setups","fig1",  "sparse-opt","coordinate_list.yaml")
 
 def run_timeloop(job_name, input_dict, base_dir, ert_path, art_path):
     output_dir = os.path.join(base_dir +"/outputs")
@@ -70,7 +78,7 @@ def main():
     #components = yaml.load(open(component_path), Loader = yaml.SafeLoader)
     mapping = yaml.load(open(mapping_path), Loader = yaml.SafeLoader)
     mapper = yaml.load(open(mapper_path), Loader = yaml.SafeLoader)
-    #sparse_opt = yaml.load(open(sparse_opt_path), Loader = yaml.SafeLoader)
+    sparse_opt = yaml.load(open(sparse_opt_path), Loader = yaml.SafeLoader)
     
     output_base_dir = os.path.join(this_directory, "outputs")
 
@@ -87,7 +95,7 @@ def main():
         print("mapping is None")
     aggregated_input.update(mapping)
     #aggregated_input.update(mapper)
-    #aggregated_input.update(sparse_opt)
+    aggregated_input.update(sparse_opt)
     
     job_name  = "example"
     
@@ -96,6 +104,7 @@ def main():
 
 
     stat_type = "cycles"
+    #stat_type = "energy_pJ"
     '''
     'problem': problem,
     'utilization': arithmetic_utilization,

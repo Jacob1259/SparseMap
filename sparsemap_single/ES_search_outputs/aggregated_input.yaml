@@ -51,21 +51,21 @@ architecture:
       name: PE[0..255]
   version: 0.3
 mapping:
-- factors: C=1 M=4 N=1 P=1 Q=2 R=1 S=1
-  permutation: MQCRSPN
+- factors: C=1 M=16 N=1 P=1 Q=1 R=1 S=1
+  permutation: MCRSNPQ
   target: DRAM
   type: temporal
-- factors: C=1 M=1 N=1 P=1 Q=1 R=1 S=1
-  permutation: CMRSNPQ
+- factors: C=1 M=1 N=1 P=1 Q=1 R=1 S=3
+  permutation: SCMRNPQ
   target: GlobelBuffer
   type: temporal
-- factors: C=1 M=4 N=1 P=8 Q=2 R=1 S=3
-  permutation: QSMPNCR
-  split: 2
+- factors: C=4 M=4 N=1 P=2 Q=8 R=1 S=1
+  permutation: QCPMRSN
+  split: 1
   target: GlobelBuffer
   type: spatial
-- factors: C=4 M=4 N=1 P=2 Q=4 R=3 S=1
-  permutation: CMQRPSN
+- factors: C=1 M=1 N=1 P=8 Q=2 R=3 S=1
+  permutation: RQPCMSN
   target: PE_buffer
   type: temporal
 - factors: C=32 M=2 N=1 P=1 Q=1 R=1 S=1
@@ -147,3 +147,73 @@ problem:
     - P
     - Q
     name: CNN-Layer
+sparse_optimizations:
+  targets:
+  - name: DRAM
+    representation-format:
+      data-spaces:
+      - name: Inputs
+        ranks:
+        - format: UOP
+        - format: UOP
+        - format: UOP
+        - format: CP
+        - format: RLE
+        - format: B
+        - format: CP
+        - format: B
+      - name: Weights
+        ranks:
+        - format: UOP
+        - format: UOP
+        - format: CP
+        - format: B
+        - format: B
+        - format: CP
+        - format: RLE
+  - name: GlobelBuffer
+    representation-format:
+      data-spaces:
+      - name: Inputs
+        ranks:
+        - format: UOP
+        - format: UOP
+        - format: UOP
+        - format: CP
+        - format: RLE
+        - format: B
+        - format: CP
+        - format: B
+      - name: Weights
+        ranks:
+        - format: B
+        - format: CP
+        - format: RLE
+  - name: PE_buffer
+    representation-format:
+      data-spaces:
+      - name: Inputs
+        ranks:
+        - format: RLE
+        - format: B
+        - format: CP
+        - format: B
+      - name: Weights
+        ranks:
+        - format: B
+        - format: CP
+        - format: RLE
+  - action-optimization:
+    - options:
+      - condition-on:
+        - Weights
+        target: Inputs
+      type: skipping
+    name: GlobelBuffer
+  - action-optimization:
+    - options:
+      - condition-on:
+        - Inputs
+        target: Weights
+      type: skipping
+    name: GlobelBuffer
