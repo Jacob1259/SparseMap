@@ -4,72 +4,75 @@ architecture:
       technology: 45nm
     local:
     - attributes:
-        block_size: 10
-        datawidth: 16
-        metadata_datawidth: 5
-        metadata_storage_width: 50
-        width: 160
+        block_size: 100
+        datawidth: 32
+        metadata_datawidth: 10
+        metadata_storage_width: 1920
+        width: 3200
       class: DRAM
       name: DRAM
       subclass: DRAM_metadata
-    - attributes:
-        cluster-size: 1
-        data_storage_depth: 4096
-        data_storage_width: 512
-        datawidth: 8
-        metadata_storage_depth: 8192
-        metadata_storage_width: 64
-        n_banks: 2
-        n_rdwr_ports: 2
-        read_bandwidth: 42
-        write_bandwidth: 42
-      class: storage
-      name: GlobelBuffer
-      subclass: SRAM_MD
     name: SingleCore
     subtree:
     - local:
       - attributes:
-          block_size: 1
-          data_storage_depth: 128
-          data_storage_width: 32
+          cluster-size: 1
+          data_storage_depth: 10000
+          data_storage_width: 3200
           datawidth: 32
-          meshX: 8
-          meshY: 32
-          metadata_datawidth: 6
-          metadata_storage_depth: 40
-          metadata_storage_width: 30
-          n_banks: 1
+          metadata_storage_depth: 10000
+          metadata_storage_width: 1920
+          n_banks: 2
+          n_rdwr_ports: 2
+          read_bandwidth: 8
+          write_bandwidth: 8
         class: storage
-        name: PE_buffer
-      - attributes:
-          datawidth: 16
-          meshX: 256
-          meshY: 64
-        class: mac
-        name: MAC[0..63]
-      name: PE[0..255]
+        name: GlobelBuffer
+        subclass: SRAM_MD
+      name: chip
+      subtree:
+      - local:
+        - attributes:
+            block_size: 1
+            data_storage_depth: 2000
+            data_storage_width: 320
+            datawidth: 32
+            meshX: 32
+            meshY: 32
+            metadata_datawidth: 10
+            metadata_storage_depth: 2000
+            metadata_storage_width: 190
+            n_banks: 3
+          class: storage
+          name: PE_buffer
+        - attributes:
+            datawidth: 32
+            meshX: 1024
+            meshY: 64
+          class: mac
+          name: MAC[0..63]
+        name: PE[0..1023]
   version: 0.3
 mapping:
-- factors: C=1 M=4 N=1 P=1 Q=2 R=1 S=1
-  permutation: MQCRSPN
+- factors: C=1 M=16 N=1 P=1 Q=2 R=1 S=1
+  permutation: PMCRSNQ
   target: DRAM
   type: temporal
-- factors: C=1 M=1 N=1 P=1 Q=1 R=1 S=1
-  permutation: CMRSNPQ
+- factors: C=1 M=2 N=1 P=1 Q=1 R=1 S=1
+  permutation: MCRSNPQ
   target: GlobelBuffer
   type: temporal
-- factors: C=1 M=4 N=1 P=8 Q=2 R=1 S=3
-  permutation: QSMPNCR
+- factors: C=4 M=8 N=1 P=16 Q=2 R=1 S=1
+  permutation: QPMCRSN
   split: 2
   target: GlobelBuffer
   type: spatial
-- factors: C=4 M=4 N=1 P=2 Q=4 R=3 S=1
-  permutation: CMQRPSN
+- factors: C=1 M=2 N=1 P=1 Q=2 R=1 S=1
+  permutation: QPMCRSN
   target: PE_buffer
   type: temporal
-- factors: C=32 M=2 N=1 P=1 Q=1 R=1 S=1
-  permutation: CMRSNPQ
+- factors: C=32 M=1 N=1 P=1 Q=2 R=1 S=1
+  permutation: CQMRSNP
   split: 1
   target: PE_buffer
   type: spatial
@@ -90,18 +93,18 @@ problem:
     C: 128
     Hdilation: 1
     Hstride: 1
-    M: 128
+    M: 512
     N: 1
     P: 16
     Q: 16
-    R: 3
-    S: 3
+    R: 1
+    S: 1
     Wdilation: 1
     Wstride: 1
     densities:
-      Inputs: 0.55
-      Outputs: 0.55
-      Weights: 0.65
+      Inputs: 0.396
+      Outputs: 0.999
+      Weights: 0.366
   shape:
     coefficients:
     - default: 1
@@ -147,3 +150,69 @@ problem:
     - P
     - Q
     name: CNN-Layer
+sparse_optimizations:
+  targets:
+  - name: DRAM
+    representation-format:
+      data-spaces:
+      - name: Inputs
+        ranks:
+        - format: UOP
+        - format: UOP
+        - format: CP
+        - format: B
+        - format: RLE
+        - format: RLE
+        - format: B
+      - name: Weights
+        ranks:
+        - format: UOP
+        - format: RLE
+        - format: B
+        - format: CP
+        - format: B
+        - format: CP
+  - name: GlobelBuffer
+    representation-format:
+      data-spaces:
+      - name: Inputs
+        ranks:
+        - format: UOP
+        - format: CP
+        - format: B
+        - format: RLE
+        - format: RLE
+        - format: B
+      - name: Weights
+        ranks:
+        - format: B
+        - format: CP
+  - name: PE_buffer
+    representation-format:
+      data-spaces:
+      - name: Inputs
+        ranks:
+        - format: RLE
+        - format: RLE
+        - format: B
+      - name: Weights
+        ranks:
+        - format: B
+        - format: CP
+  - action-optimization:
+    - options:
+      - condition-on:
+        - Weights
+        target: Inputs
+      type: skipping
+    name: GlobelBuffer
+  - action-optimization:
+    - options:
+      - condition-on:
+        - Inputs
+        target: Weights
+      type: skipping
+    name: GlobelBuffer
+  - compute-optimization:
+    - type: skipping
+    name: MAC

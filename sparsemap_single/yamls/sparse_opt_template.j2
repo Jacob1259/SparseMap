@@ -23,4 +23,8 @@ sparse_optimizations:
               condition-on: {{ target['condition_on'] }}
   {% endfor %}
 
+    - name: MAC
+      compute-optimization:
+        - type: skipping
+
 

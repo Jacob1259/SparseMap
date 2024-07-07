@@ -12,9 +12,9 @@ problem:
     Wdilation: 1
     Wstride: 1
     densities:
-      Inputs: 0.55
-      Outputs: 0.55
-      Weights: 0.65
+      Inputs: 0.477
+      Outputs: 0.999
+      Weights: 0.547
   shape:
     coefficients:
     - default: 1

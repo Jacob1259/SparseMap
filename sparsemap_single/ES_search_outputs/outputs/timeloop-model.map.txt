@@ -1,21 +1,21 @@
 
-DRAM [ Weights:147456 (95847) Inputs:41472 (22810) Outputs:32768 (32768) ] 
---------------------------------------------------------------------------
-| for M in [0:16)
+DRAM [ Weights:65536 (23987) Inputs:32768 (12977) Outputs:131072 (131072) ] 
+---------------------------------------------------------------------------
+| for Q in [0:2)
+|   for M in [0:16)
 
 GlobelBuffer [ ] 
 ----------------
-|   for S in [0:3)
-|     for M in [0:4) (Spatial-Y)
-|       for P in [0:2) (Spatial-Y)
-|         for C in [0:4) (Spatial-Y)
-|           for Q in [0:8) (Spatial-X)
+|     for M in [0:2)
+|       for C in [0:4) (Spatial-Y)
+|         for M in [0:8) (Spatial-Y)
+|           for P in [0:16) (Spatial-X)
+|             for Q in [0:2) (Spatial-X)
 
 PE_buffer [ ] 
 -------------
-|             for P in [0:8)
-|               for Q in [0:2)
-|                 for R in [0:3)
-|                   for M in [0:2) (Spatial-Y)
+|               for M in [0:2)
+|                 for Q in [0:2)
+|                   for Q in [0:2) (Spatial-Y)
 |                     for C in [0:32) (Spatial-X)
 

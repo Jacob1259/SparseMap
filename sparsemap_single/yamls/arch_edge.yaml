@@ -7,52 +7,55 @@ architecture:
 
       local:
         - name: DRAM
-          class: DRAM
-          subclass: DRAM_metadata
+          class: DRAM    
+          subclass: DRAM_metadata                #cloud下总带宽是5120b
           attributes:
-            width: 160
-            block_size: 10
-            datawidth: 16
-            metadata_datawidth: 5
-            metadata_storage_width: 50
-        
-        - name: GlobelBuffer
-          class: storage
-          subclass: SRAM_MD
-          attributes:
-            data_storage_depth: 4096 # 65536
-            data_storage_width: 512
-            metadata_storage_depth: 8192
-            metadata_storage_width: 64
-            n_banks: 2
-            n_rdwr_ports: 2
-            datawidth: 8
-            cluster-size: 1
-            read_bandwidth: 42
-            write_bandwidth: 42
+            width: 3200                       #一行一共有几个bit
+            block_size: 100                   #一行有几个word
+            datawidth: 32                    #一个word有几个bit
+            metadata_datawidth: 10
+            metadata_storage_width: 1920      ##一行一共有几个bit
 
       subtree:
-        - name: PE[0..255]
+        - name: chip
           local:
-            - name: PE_buffer
+            - name: GlobelBuffer
               class: storage
+              subclass: SRAM_MD
               attributes:
-                data_storage_depth: 128
-                data_storage_width: 32
-                metadata_datawidth: 6
-                metadata_storage_width: 30
-                metadata_storage_depth: 40
-                n_banks: 1
+                data_storage_depth: 100 # 65536
+                data_storage_width: 3200
+                metadata_storage_depth: 100
+                metadata_storage_width: 1920
+                n_banks: 2
+                n_rdwr_ports: 2
                 datawidth: 32
-                block_size: 1
-                #read_bandwidth: 2
-                #write_bandwidth: 2
-                meshX: 8
-                meshY: 32
-        
-            - name: MAC[0..63]
-              class: mac
-              attributes:
-                meshX: 256
-                meshY: 64
-                datawidth: 16
+                cluster-size: 1
+                read_bandwidth: 8          #number of words per cycle
+                write_bandwidth: 8         #number of words per cycle
+
+          subtree:
+            - name: PE[0..127]
+              local:
+                - name: PE_buffer
+                  class: storage
+                  attributes:
+                    data_storage_depth: 20
+                    data_storage_width: 320
+                    metadata_datawidth: 10
+                    metadata_storage_width: 190
+                    metadata_storage_depth: 20
+                    n_banks: 3
+                    datawidth: 32
+                    block_size: 1
+                    #read_bandwidth: 2
+                    #write_bandwidth: 2
+                    meshX: 16
+                    meshY: 8
+            
+                - name: MAC[0..1]
+                  class: mac
+                  attributes:
+                    meshX: 16
+                    meshY: 16
+                    datawidth: 32
