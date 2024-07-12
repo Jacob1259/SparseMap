@@ -21,17 +21,17 @@ import nevergrad as ng
 
 OVERWRITE = 1
 
-dimensions = { 'M': 2016, 
-              'K': 49152,
-              'N': 12288 }
-JOB = "transformer_mm"               #高层次
-WORK_LOAD = "workload_spGPT_MLP2"           #低层次
-#PLATFORM = "cloud"
+dimensions = { 'M': 768, 
+              'K': 768,
+              'N': 768 }
+JOB = "deepbrain_mm"               #高层次
+WORK_LOAD = "workload_deepbrain_denrimer"           #低层次
+PLATFORM = "cloud"
 #PLATFORM = "edge"
-PLATFORM = "mobile"
-N_GENERATIONS = 10
+#PLATFORM = "mobile"
+N_GENERATIONS = 30
 POP_SIZE = 100           # population size
-N_KID = 50               # n kids per generation
+N_KID = 40               # n kids per generation
 
 OBJECT = 'cycles'       #优化目标
 OBJECT = 'edp'
@@ -959,7 +959,7 @@ def evaluate(individal):
         formatted_number = f"{fitness:.2e}"
         print("current result = ",formatted_number)
     else:
-        fitness = -10000000000000000000
+        fitness = float('-inf')
     return fitness
 
 def evaluate_state(state):                                    #indi是长度63的np array
@@ -1205,7 +1205,7 @@ def evaluate_state(state):                                    #indi是长度63�
         else:
             fitness = job_output_stats[stat_type]
     else:
-        fitness = 10000000000000000000
+        fitness = float('inf')
     return fitness
 
 def target(map_code,perm_code,bypass_choice,split,cf,SG):   #这里的code都是Numpy的  map是长度为mapping_encoding_len的一维，perm长度为5          优化目标函数
@@ -1228,7 +1228,7 @@ def target(map_code,perm_code,bypass_choice,split,cf,SG):   #这里的code都是
     state['weightCF'] = cf[5:10]
     state['SG_option'] = SG
     a = evaluate_state(state)
-    if a != 10000000000000000000:
+    if a != float('inf') :
         print(a)
     return a
 
@@ -1478,6 +1478,64 @@ def envolve(population,fitness):
     return next_generation_candidates, fitness
 
 
+def curve_normal_envolve(population,fitness):                                     
+    selected_population, parents_fitness = select_order(population, fitness)   #从上一代中挑出50个
+    #kids = mutate(selected_population, N_KID)
+    kids = crossover(selected_population, N_KID)                               #交叉
+    kids_fitness = np.array([evaluate(indi) for indi in kids])                                                    #生成子代       
+    next_generation_candidates = np.concatenate([selected_population, kids])  
+    fitness = np.append(parents_fitness,kids_fitness)
+    return next_generation_candidates, fitness
+
+def naive_envolve(population,fitness):
+    kids = crossover(population, N_KID)                               #交叉
+    kids_fitness = np.array([evaluate(indi) for indi in kids]) 
+    next_generation_candidates = np.concatenate([population, kids])  
+    next_generation_fitness = np.append(fitness,kids_fitness)
+    population, fitness = select_order(next_generation_candidates, next_generation_fitness)
+    return population,fitness
+
+def curve_envolve(population,fitness):
+    sorted_indices = np.argsort(fitness)[::-1]             # 选取数值较大的一半
+    top_half_indices = sorted_indices[:len(sorted_indices) // 2]           # 随机选取十个索引
+    random_indices = np.random.choice(top_half_indices, 10, replace=False)
+    stren = []                  
+    stren_fitness = []                   
+    for i in range(10):
+        strenthened_indi, strenthened_indi_fitness = strenthen(population[random_indices[i]])
+        stren.append(strenthened_indi)
+        stren_fitness.append(strenthened_indi_fitness)
+    stren_np = np.array(stren)
+    stren_fitness_np = np.array(stren_fitness)
+
+    next_generation_candidates = np.concatenate([population, stren_np]) 
+    next_generation_fitness = np.append(fitness,stren_fitness_np)
+
+    parents = population[top_half_indices]
+    kids = crossover(parents, N_KID)                               #交叉
+    kids_fitness = np.array([evaluate(indi) for indi in kids])                                                    
+
+    next_generation_candidates = np.concatenate([next_generation_candidates, kids])  
+    next_generation_fitness = np.append(next_generation_fitness,kids_fitness) 
+
+    final_sorted_indices = np.argsort(next_generation_fitness)[::-1]                       #生成最终子代 
+    final_top_indices = final_sorted_indices[:POP_SIZE-1]
+
+    final_pop = next_generation_candidates[final_top_indices]
+    final_fitness = next_generation_fitness[final_top_indices]
+
+    return final_pop, final_fitness
+
+
+def culculate_average(fitness):                                  
+    num = 0
+    sum = 0
+    for i in range(len(fitness)):
+        if not np.isinf(fitness[i]):
+            num += 1
+            sum += abs(fitness[i])
+    return sum/num
+
 def test_main():
     initialize_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", JOB + "_mapping_found", WORK_LOAD + "_initialize.csv" )
     population = population_initialize(initialize_path)
@@ -1489,27 +1547,32 @@ def test_main():
     print(per)
 
 def main():
-    initialize_path = "/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single/"+JOB+"_mapping_found/"+WORK_LOAD+"_initialize.csv"
+    #initialize_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", "curve_deepbrain_mm3_initialize.csv" )
+    initialize_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", "curve_deepbrain_mm3_initialize_normal.csv" )
     population = population_initialize(initialize_path)
-    print("population 0  ",population[0])
-    print(len_list, len(population[0]))
+    curve_data_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", WORK_LOAD + "average_performance.txt" )
     fitness = np.array([evaluate(indi) for indi in population])
     print("======================================================================================================   population initialized !   ========================================================")
-    #init_fitness = fitness
-    
     generation_best_individual = []
     generation_best_performance = []
-
+    Average_performance = []
     for i in range(N_GENERATIONS):
-        population,fitness = envolve(population,fitness)
-        print("fitness = ",fitness)
-        #print("best performance = ",-max(fitness))
+        print("fitness:",fitness)
+        generation_average = culculate_average(fitness)
+        Average_performance.append(generation_average)
+        np.savetxt(curve_data_path , Average_performance , delimiter="," , fmt='%e')
+
+        #population,fitness = naive_envolve(population,fitness)   
+        #population,fitness = curve_normal_envolve(population,fitness)                            #实际版本
+        population,fitness = curve_envolve(population,fitness)
         best_indi_index = np.argmax(fitness)
         generation_best_individual.append(population[best_indi_index,:].tolist())
         generation_best_performance.append(-fitness[best_indi_index])
+
         print("=====================================================================\n")
         print("GENERATION = ",i)
         print("Best performance is",-fitness[best_indi_index])
+        print("Average performance is",generation_average)
         print("=====================================================================\n")
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")

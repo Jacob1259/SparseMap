@@ -17,10 +17,10 @@ architecture:
     - local:
       - attributes:
           cluster-size: 1
-          data_storage_depth: 10000
+          data_storage_depth: 100
           data_storage_width: 3200
           datawidth: 32
-          metadata_storage_depth: 10000
+          metadata_storage_depth: 100
           metadata_storage_width: 1920
           n_banks: 2
           n_rdwr_ports: 2
@@ -34,128 +34,101 @@ architecture:
       - local:
         - attributes:
             block_size: 1
-            data_storage_depth: 2000
+            data_storage_depth: 20
             data_storage_width: 320
             datawidth: 32
-            meshX: 32
-            meshY: 32
+            meshX: 16
+            meshY: 8
             metadata_datawidth: 10
-            metadata_storage_depth: 2000
+            metadata_storage_depth: 20
             metadata_storage_width: 190
             n_banks: 3
           class: storage
           name: PE_buffer
         - attributes:
             datawidth: 32
-            meshX: 1024
-            meshY: 64
+            meshX: 16
+            meshY: 16
           class: mac
-          name: MAC[0..63]
-        name: PE[0..1023]
+          name: MAC[0..1]
+        name: PE[0..127]
   version: 0.3
 mapping:
-- factors: C=1 M=16 N=1 P=1 Q=2 R=1 S=1
-  permutation: PMCRSNQ
+- factors: M=1 K=1 N=1
+  permutation: KMN
   target: DRAM
   type: temporal
-- factors: C=1 M=2 N=1 P=1 Q=1 R=1 S=1
-  permutation: MCRSNPQ
+- factors: M=12 K=2 N=24
+  permutation: MNK
   target: GlobelBuffer
   type: temporal
-- factors: C=4 M=8 N=1 P=16 Q=2 R=1 S=1
-  permutation: QPMCRSN
-  split: 2
+- factors: M=8 K=96 N=4
+  permutation: NMK
+  split: 3
   target: GlobelBuffer
   type: spatial
-- factors: C=1 M=2 N=1 P=1 Q=2 R=1 S=1
-  permutation: QPMCRSN
+- factors: M=4 K=4 N=4
+  permutation: MKN
   target: PE_buffer
   type: temporal
-- factors: C=32 M=1 N=1 P=1 Q=2 R=1 S=1
-  permutation: CQMRSNP
-  split: 1
+- factors: M=2 K=1 N=2
+  permutation: KNM
+  split: 0
   target: PE_buffer
   type: spatial
 - bypass:
-  - Inputs
-  - Weights
-  - Outputs
-  target: GlobelBuffer
-  type: datatype
-- bypass:
-  - Inputs
-  - Weights
-  - Outputs
+  - A
+  - B
+  - Z
   target: PE_buffer
   type: datatype
 problem:
   instance:
-    C: 128
-    Hdilation: 1
-    Hstride: 1
-    M: 512
-    N: 1
-    P: 16
-    Q: 16
-    R: 1
-    S: 1
-    Wdilation: 1
-    Wstride: 1
+    K: 768
+    M: 768
+    N: 768
     densities:
-      Inputs: 0.396
-      Outputs: 0.999
-      Weights: 0.366
+      A:
+        density: 0.118
+        distribution: fixed-structured
+      B:
+        density: 0.118
+        distribution: fixed-structured
   shape:
-    coefficients:
-    - default: 1
-      name: Wstride
-    - default: 1
-      name: Hstride
-    - default: 1
-      name: Wdilation
-    - default: 1
-      name: Hdilation
     data-spaces:
-    - name: Weights
+    - name: A
       projection:
-      - - - C
       - - - M
-      - - - R
-      - - - S
-    - name: Inputs
+      - - - K
+    - name: B
       projection:
       - - - N
-      - - - C
-      - - - R
-          - Wdilation
-        - - P
-          - Wstride
-      - - - S
-          - Hdilation
-        - - Q
-          - Hstride
-    - name: Outputs
+      - - - K
+    - name: Z
       projection:
-      - - - N
       - - - M
-      - - - Q
-      - - - P
+      - - - N
       read-write: true
     dimensions:
-    - C
     - M
-    - R
-    - S
     - N
-    - P
-    - Q
-    name: CNN-Layer
+    - K
+    name: MatrixMultiply
 sparse_optimizations:
   targets:
   - name: DRAM
     representation-format:
       data-spaces:
-      - name: Inputs
+      - name: A
+        ranks:
+        - format: UOP
+        - format: UOP
+        - format: B
+        - format: B
+        - format: RLE
+        - format: B
+        - format: B
+      - name: B
         ranks:
         - format: UOP
         - format: UOP
@@ -164,53 +137,45 @@ sparse_optimizations:
         - format: RLE
         - format: RLE
         - format: B
-      - name: Weights
-        ranks:
-        - format: UOP
-        - format: RLE
-        - format: B
-        - format: CP
-        - format: B
-        - format: CP
   - name: GlobelBuffer
     representation-format:
       data-spaces:
-      - name: Inputs
+      - name: A
         ranks:
+        - format: UOP
+        - format: UOP
+        - format: B
+        - format: B
+        - format: RLE
+        - format: B
+        - format: B
+      - name: B
+        ranks:
+        - format: UOP
         - format: UOP
         - format: CP
         - format: B
         - format: RLE
         - format: RLE
         - format: B
-      - name: Weights
-        ranks:
-        - format: B
-        - format: CP
   - name: PE_buffer
     representation-format:
       data-spaces:
-      - name: Inputs
+      - name: A
+        ranks:
+        - format: RLE
+        - format: B
+        - format: B
+      - name: B
         ranks:
         - format: RLE
         - format: RLE
         - format: B
-      - name: Weights
-        ranks:
-        - format: B
-        - format: CP
   - action-optimization:
     - options:
       - condition-on:
-        - Weights
-        target: Inputs
-      type: skipping
-    name: GlobelBuffer
-  - action-optimization:
-    - options:
-      - condition-on:
-        - Inputs
-        target: Weights
+        - B
+        target: A
       type: skipping
     name: GlobelBuffer
   - compute-optimization:

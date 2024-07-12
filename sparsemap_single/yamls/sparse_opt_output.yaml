@@ -6,38 +6,46 @@ sparse_optimizations:
       representation-format:
         data-spaces:
         
-          - name: Inputs
+          - name: A
             ranks:
             
               - format: UOP
             
               - format: UOP
             
-              - format: RLE
+              - format: UOP
             
               - format: B
             
-              - format: CP
+              - format: RLE
             
               - format: CP
             
-              - format: CP
+              - format: B
+            
+              - format: RLE
             
         
-          - name: Weights
+          - name: B
             ranks:
             
               - format: UOP
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: B
             
               - format: CP
             
               - format: B
             
-              - format: RLE
-            
               - format: CP
             
-              - format: CP
+              - format: B
             
         
   
@@ -45,28 +53,42 @@ sparse_optimizations:
       representation-format:
         data-spaces:
         
-          - name: Inputs
+          - name: A
             ranks:
             
               - format: UOP
             
+              - format: UOP
+            
+              - format: B
+            
               - format: RLE
+            
+              - format: CP
+            
+              - format: B
+            
+              - format: RLE
+            
+        
+          - name: B
+            ranks:
+            
+              - format: UOP
+            
+              - format: UOP
+            
+              - format: UOP
             
               - format: B
             
               - format: CP
             
-              - format: CP
+              - format: B
             
               - format: CP
             
-        
-          - name: Weights
-            ranks:
-            
-              - format: CP
-            
-              - format: CP
+              - format: B
             
         
   
@@ -74,22 +96,28 @@ sparse_optimizations:
       representation-format:
         data-spaces:
         
-          - name: Inputs
+          - name: A
             ranks:
             
-              - format: CP
+              - format: RLE
             
               - format: CP
             
-              - format: CP
+              - format: B
+            
+              - format: RLE
             
         
-          - name: Weights
+          - name: B
             ranks:
             
               - format: CP
             
+              - format: B
+            
               - format: CP
+            
+              - format: B
             
         
   
@@ -99,8 +127,8 @@ sparse_optimizations:
       action-optimization:
         - type: gating
           options:
-            - target: Weights
-              condition-on: [ Inputs ]
+            - target: B
+              condition-on: [ A ]
   
 
     - name: MAC

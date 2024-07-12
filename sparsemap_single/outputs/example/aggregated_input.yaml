@@ -17,10 +17,10 @@ architecture:
     - local:
       - attributes:
           cluster-size: 1
-          data_storage_depth: 2500
+          data_storage_depth: 10000
           data_storage_width: 3200
           datawidth: 32
-          metadata_storage_depth: 2500
+          metadata_storage_depth: 10000
           metadata_storage_width: 1920
           n_banks: 2
           n_rdwr_ports: 2
@@ -34,105 +34,62 @@ architecture:
       - local:
         - attributes:
             block_size: 1
-            data_storage_depth: 500
+            data_storage_depth: 2000
             data_storage_width: 320
             datawidth: 32
-            meshX: 16
-            meshY: 16
+            meshX: 32
+            meshY: 32
             metadata_datawidth: 10
-            metadata_storage_depth: 500
+            metadata_storage_depth: 2000
             metadata_storage_width: 190
             n_banks: 3
           class: storage
           name: PE_buffer
         - attributes:
             datawidth: 32
-            meshX: 512
-            meshY: 32
+            meshX: 1024
+            meshY: 64
           class: mac
           name: MAC[0..63]
-        name: PE[0..255]
+        name: PE[0..1023]
   version: 0.3
-architecture_constraints:
-  targets:
-  - bypass: []
-    keep: []
-    target: GlobelBuffer
-    type: bypass
-  - bypass: []
-    keep: []
-    target: PE_buffer
-    type: bypass
-  - factors: C=32
-    target: PE_buffer
-    type: spatial
 mapper:
   algorithm: random
   num-threads: 11
   optimization-metric: edp
-  search-size: 20000
+  search-size: 5000
   sync-interval: 5
   timeout: 0
   victory-condition: 0
 problem:
   instance:
-    C: 128
-    Hdilation: 1
-    Hstride: 1
-    M: 512
-    N: 1
-    P: 16
-    Q: 16
-    R: 1
-    S: 1
-    Wdilation: 1
-    Wstride: 1
+    K: 768
+    M: 768
+    N: 768
     densities:
-      Inputs: 0.396
-      Outputs: 0.999
-      Weights: 0.366
+      A:
+        density: 0.118
+        distribution: fixed-structured
+      B:
+        density: 0.118
+        distribution: fixed-structured
   shape:
-    coefficients:
-    - default: 1
-      name: Wstride
-    - default: 1
-      name: Hstride
-    - default: 1
-      name: Wdilation
-    - default: 1
-      name: Hdilation
     data-spaces:
-    - name: Weights
+    - name: A
       projection:
-      - - - C
       - - - M
-      - - - R
-      - - - S
-    - name: Inputs
+      - - - K
+    - name: B
       projection:
       - - - N
-      - - - C
-      - - - R
-          - Wdilation
-        - - P
-          - Wstride
-      - - - S
-          - Hdilation
-        - - Q
-          - Hstride
-    - name: Outputs
+      - - - K
+    - name: Z
       projection:
-      - - - N
       - - - M
-      - - - Q
-      - - - P
+      - - - N
       read-write: true
     dimensions:
-    - C
     - M
-    - R
-    - S
     - N
-    - P
-    - Q
-    name: CNN-Layer
+    - K
+    name: MatrixMultiply

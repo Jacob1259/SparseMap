@@ -3,42 +3,31 @@
 mapping:
   - target: DRAM
     type: temporal
-    permutation: PMCRSNQ
-    factors: C=1 M=16 N=1 P=1 Q=2 R=1 S=1
+    permutation: KMN
+    factors: M=1 K=1 N=1
 
   - target: GlobelBuffer
     type: temporal
-    permutation: MCRSNPQ
-    factors: C=1 M=2 N=1 P=1 Q=1 R=1 S=1
+    permutation: MNK
+    factors: M=12 K=2 N=24
 
   - target: GlobelBuffer
     type: spatial
-    permutation: QPMCRSN
-    split: 2
-    factors: C=4 M=8 N=1 P=16 Q=2 R=1 S=1
+    permutation: NMK
+    split: 3
+    factors: M=8 K=96 N=4
 
   - target: PE_buffer
     type: temporal
-    permutation: QPMCRSN
-    factors: C=1 M=2 N=1 P=1 Q=2 R=1 S=1
+    permutation: MKN
+    factors: M=4 K=4 N=4
 
   - target: PE_buffer
     type: spatial
-    permutation: CQMRSNP
-    split: 1
-    factors: C=32 M=1 N=1 P=1 Q=2 R=1 S=1
+    permutation: KNM
+    split: 0
+    factors: M=2 K=1 N=2
 
-  
-  - target: GlobelBuffer
-    type: datatype
-    bypass:
-      
-        - Inputs
-      
-        - Weights
-      
-        - Outputs
-      
   
 
   
@@ -46,11 +35,11 @@ mapping:
     type: datatype
     bypass:
       
-        - Inputs
+        - A
       
-        - Weights
+        - B
       
-        - Outputs
+        - Z
       
   
 

@@ -21,9 +21,9 @@ import pandas as pd
 #五层存储的ES  此版本暂时只考虑mapping
 
 OVERWRITE = 1
-JOB = "transformer_mm"              #高层次
-WORK_LOAD = "workload_spGPT_MLP2"        #低层次
-N = 5                         #要多少个个体
+JOB = "deepbrain_mm"              #高层次
+WORK_LOAD = "workload_deepbrain_denrimer"        #低层次
+N = 11                         #要多少个个体
 SEARCH_SIZE = 5000
 #OBJECT = 'delay'
 #OBJECT = 'cycles'       #优化目标
@@ -42,8 +42,8 @@ OBJECT = 'edp'       #优化目标
 #ALGO = 'random-pruned'
 ALGO = 'random'
 #PLATFORM = "edge"
-PLATFORM = "mobile"
-#PLATFORM = "cloud"
+#PLATFORM = "mobile"
+PLATFORM = "cloud"
 WITH_CONSTRAINTS = 0
 
 N_GENERATIONS = 20

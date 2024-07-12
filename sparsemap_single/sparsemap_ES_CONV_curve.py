@@ -1012,7 +1012,7 @@ def evaluate(individal):
         formatted_number = f"{fitness:.2e}"
         print("current result = ",formatted_number)
     else:
-        fitness = -1000000000000000000000
+        fitness = float('-inf')
     return fitness
 
 def evaluate_state(state):                                    #indi是长度63的np array
@@ -1303,7 +1303,7 @@ def evaluate_state(state):                                    #indi是长度63�
         else:
             fitness = job_output_stats[stat_type]
     else:
-        fitness = 1000000000000000000000
+        fitness = float('inf')
     return fitness
 
 def target(map_code,perm_code,bypass_choice,split,cf,SG):   #这里的code都是Numpy的  map是长度为mapping_encoding_len的一维，perm长度为5          优化目标函数
@@ -1326,7 +1326,7 @@ def target(map_code,perm_code,bypass_choice,split,cf,SG):   #这里的code都是
     state['weightCF'] = cf[5:10]
     state['SG_option'] = SG
     a = evaluate_state(state)
-    if a != 1000000000000000000000:
+    if a != float('inf'):
         print(a)
     return a
 
@@ -1409,6 +1409,34 @@ def select_order(population, fitness):
     selected_fitness = fitness[sorted_indices[:POP_SIZE - N_KID]]
 
     return selected_population, selected_fitness
+
+def select_rollet(population, fitness):         #有问题待改
+    """
+    轮盘赌选择算法
+    参数:
+        population (ndarray): 种群，二维数组，每行是一个个体
+        fitness (ndarray): 适应度，一维数组，每个个体对应的适应度
+        num_selected (int): 选择的个体数量
+    返回:
+        selected_population (ndarray): 被选择的个体，二维数组
+        selected_fitness (ndarray): 被选择的个体的适应度，一维数组
+    """
+    # 计算适应度总和
+    fitness = np.asarray(fitness, dtype=np.float64)
+    total_fitness = np.sum(fitness)
+    
+    # 计算每个个体被选择的概率
+    selection_probs = fitness / total_fitness
+
+    # 选择个体的索引
+    selected_indices = np.random.choice(len(population), size= POP_SIZE - N_KID, replace=True, p=selection_probs)
+
+    # 获取被选择的个体及其适应度
+    selected_population = population[selected_indices]
+    selected_fitness = fitness[selected_indices]
+
+    return selected_population, selected_fitness
+
 
 def crossover(parents, n_kid):
     kids = []
@@ -1568,6 +1596,23 @@ def envolve(population,fitness):
     return next_generation_candidates, fitness
 
 
+def curve_normal_envolve(population,fitness):                                     
+    selected_population, parents_fitness = select_order(population, fitness)   #从上一代中挑出50个
+    #kids = mutate(selected_population, N_KID)
+    kids = crossover(selected_population, N_KID)                               #交叉
+    kids_fitness = np.array([evaluate(indi) for indi in kids])                                                    #生成子代       
+    next_generation_candidates = np.concatenate([selected_population, kids])  
+    fitness = np.append(parents_fitness,kids_fitness)
+    return next_generation_candidates, fitness
+
+def naive_envolve(population,fitness):
+    kids = crossover(population, N_KID)                               #交叉
+    kids_fitness = np.array([evaluate(indi) for indi in kids]) 
+    next_generation_candidates = np.concatenate([population, kids])  
+    next_generation_fitness = np.append(fitness,kids_fitness)
+    population, fitness = select_order(next_generation_candidates, next_generation_fitness)
+    return population,fitness
+
 def curve_envolve(population,fitness):
     sorted_indices = np.argsort(fitness)[::-1]             # 选取数值较大的一半
     top_half_indices = sorted_indices[:len(sorted_indices) // 2]           # 随机选取十个索引
@@ -1599,11 +1644,13 @@ def curve_envolve(population,fitness):
 
     return final_pop, final_fitness
 
-def culculate_average(fitness):
+
+
+def culculate_average(fitness):                                  
     num = 0
     sum = 0
     for i in range(len(fitness)):
-        if fitness[i]!= 1000000000000000000000:
+        if not np.isinf(fitness[i]):
             num += 1
             sum += abs(fitness[i])
     return sum/num
@@ -1620,7 +1667,8 @@ def test_main():
     print(per)
 
 def main():
-    initialize_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", "curve_resnet_conv3_initialize.csv" )
+    #initialize_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", "curve_resnet_conv3_initialize.csv" )
+    initialize_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", "curve_resnet_conv3_initialize_normal.csv" )
     population = population_initialize(initialize_path)
     curve_data_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single", WORK_LOAD + "average_performance.txt" )
     fitness = np.array([evaluate(indi) for indi in population])
@@ -1634,8 +1682,9 @@ def main():
         Average_performance.append(generation_average)
         np.savetxt(curve_data_path , Average_performance , delimiter="," , fmt='%e')
 
-        population,fitness = curve_envolve(population,fitness)
-        population,fitness = envolve(population,fitness)
+        population,fitness = naive_envolve(population,fitness)   
+        population,fitness = curve_normal_envolve(population,fitness)                            #实际版本
+        #population,fitness = envolve(population,fitness)
         best_indi_index = np.argmax(fitness)
         generation_best_individual.append(population[best_indi_index,:].tolist())
         generation_best_performance.append(-fitness[best_indi_index])

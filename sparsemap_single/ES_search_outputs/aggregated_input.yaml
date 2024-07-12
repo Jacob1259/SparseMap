@@ -54,156 +54,128 @@ architecture:
         name: PE[0..1023]
   version: 0.3
 mapping:
-- factors: C=1 M=16 N=1 P=1 Q=2 R=1 S=1
-  permutation: PMCRSNQ
+- factors: M=1 K=2 N=1
+  permutation: MKN
   target: DRAM
   type: temporal
-- factors: C=1 M=2 N=1 P=1 Q=1 R=1 S=1
-  permutation: MCRSNPQ
+- factors: M=4 K=12 N=4
+  permutation: NKM
   target: GlobelBuffer
   type: temporal
-- factors: C=4 M=8 N=1 P=16 Q=2 R=1 S=1
-  permutation: QPMCRSN
-  split: 2
-  target: GlobelBuffer
-  type: spatial
-- factors: C=1 M=2 N=1 P=1 Q=2 R=1 S=1
-  permutation: QPMCRSN
-  target: PE_buffer
-  type: temporal
-- factors: C=32 M=1 N=1 P=1 Q=2 R=1 S=1
-  permutation: CQMRSNP
+- factors: M=1 K=2 N=4
+  permutation: KNM
   split: 1
+  target: GlobelBuffer
+  type: spatial
+- factors: M=4 K=8 N=12
+  permutation: KMN
+  target: PE_buffer
+  type: temporal
+- factors: M=48 K=2 N=4
+  permutation: NKM
+  split: 3
   target: PE_buffer
   type: spatial
-- bypass:
-  - Inputs
-  - Weights
-  - Outputs
-  target: GlobelBuffer
-  type: datatype
-- bypass:
-  - Inputs
-  - Weights
-  - Outputs
-  target: PE_buffer
-  type: datatype
 problem:
   instance:
-    C: 128
-    Hdilation: 1
-    Hstride: 1
-    M: 512
-    N: 1
-    P: 16
-    Q: 16
-    R: 1
-    S: 1
-    Wdilation: 1
-    Wstride: 1
+    K: 768
+    M: 768
+    N: 768
     densities:
-      Inputs: 0.396
-      Outputs: 0.999
-      Weights: 0.366
+      A:
+        density: 0.118
+        distribution: fixed-structured
+      B:
+        density: 0.118
+        distribution: fixed-structured
   shape:
-    coefficients:
-    - default: 1
-      name: Wstride
-    - default: 1
-      name: Hstride
-    - default: 1
-      name: Wdilation
-    - default: 1
-      name: Hdilation
     data-spaces:
-    - name: Weights
+    - name: A
       projection:
-      - - - C
       - - - M
-      - - - R
-      - - - S
-    - name: Inputs
+      - - - K
+    - name: B
       projection:
       - - - N
-      - - - C
-      - - - R
-          - Wdilation
-        - - P
-          - Wstride
-      - - - S
-          - Hdilation
-        - - Q
-          - Hstride
-    - name: Outputs
+      - - - K
+    - name: Z
       projection:
-      - - - N
       - - - M
-      - - - Q
-      - - - P
+      - - - N
       read-write: true
     dimensions:
-    - C
     - M
-    - R
-    - S
     - N
-    - P
-    - Q
-    name: CNN-Layer
+    - K
+    name: MatrixMultiply
 sparse_optimizations:
   targets:
   - name: DRAM
     representation-format:
       data-spaces:
-      - name: Inputs
+      - name: A
         ranks:
         - format: UOP
         - format: UOP
-        - format: RLE
+        - format: UOP
         - format: B
+        - format: RLE
         - format: CP
-        - format: CP
-        - format: CP
-      - name: Weights
+        - format: B
+        - format: RLE
+      - name: B
         ranks:
         - format: UOP
+        - format: UOP
+        - format: UOP
+        - format: UOP
+        - format: B
         - format: CP
         - format: B
-        - format: RLE
         - format: CP
-        - format: CP
+        - format: B
   - name: GlobelBuffer
     representation-format:
       data-spaces:
-      - name: Inputs
+      - name: A
         ranks:
         - format: UOP
+        - format: UOP
+        - format: B
         - format: RLE
+        - format: CP
+        - format: B
+        - format: RLE
+      - name: B
+        ranks:
+        - format: UOP
+        - format: UOP
+        - format: UOP
         - format: B
         - format: CP
+        - format: B
         - format: CP
-        - format: CP
-      - name: Weights
-        ranks:
-        - format: CP
-        - format: CP
+        - format: B
   - name: PE_buffer
     representation-format:
       data-spaces:
-      - name: Inputs
+      - name: A
+        ranks:
+        - format: RLE
+        - format: CP
+        - format: B
+        - format: RLE
+      - name: B
         ranks:
         - format: CP
+        - format: B
         - format: CP
-        - format: CP
-      - name: Weights
-        ranks:
-        - format: CP
-        - format: CP
+        - format: B
   - action-optimization:
     - options:
       - condition-on:
-        - Inputs
-        target: Weights
+        - A
+        target: B
       type: gating
     name: GlobelBuffer
   - compute-optimization:

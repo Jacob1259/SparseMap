@@ -18,6 +18,6 @@ architecture_constraints:
     - target: PE_buffer
       type: spatial
       
-      factors: C=32
+      factors: M=32
       
   
