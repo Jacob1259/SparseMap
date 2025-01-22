@@ -17,10 +17,10 @@ architecture:
     - local:
       - attributes:
           cluster-size: 1
-          data_storage_depth: 10000
+          data_storage_depth: 100
           data_storage_width: 3200
           datawidth: 32
-          metadata_storage_depth: 10000
+          metadata_storage_depth: 100
           metadata_storage_width: 1920
           n_banks: 2
           n_rdwr_ports: 2
@@ -34,59 +34,64 @@ architecture:
       - local:
         - attributes:
             block_size: 1
-            data_storage_depth: 2000
+            data_storage_depth: 20
             data_storage_width: 320
             datawidth: 32
-            meshX: 32
-            meshY: 32
+            meshX: 16
+            meshY: 8
             metadata_datawidth: 10
-            metadata_storage_depth: 2000
+            metadata_storage_depth: 20
             metadata_storage_width: 190
             n_banks: 3
           class: storage
           name: PE_buffer
         - attributes:
             datawidth: 32
-            meshX: 1024
-            meshY: 64
+            meshX: 16
+            meshY: 16
           class: mac
-          name: MAC[0..63]
-        name: PE[0..1023]
+          name: MAC[0..1]
+        name: PE[0..127]
   version: 0.3
 mapping:
-- factors: M=1 K=2 N=1
-  permutation: MKN
+- factors: M=4 K=8 N=1
+  permutation: MNK
   target: DRAM
   type: temporal
-- factors: M=4 K=12 N=4
-  permutation: NKM
+- factors: M=2 K=2 N=2
+  permutation: NMK
   target: GlobelBuffer
   type: temporal
-- factors: M=1 K=2 N=4
+- factors: M=2 K=2 N=4
   permutation: KNM
   split: 1
   target: GlobelBuffer
   type: spatial
-- factors: M=4 K=8 N=12
-  permutation: KMN
+- factors: M=4 K=1 N=32
+  permutation: KNM
   target: PE_buffer
   type: temporal
-- factors: M=48 K=2 N=4
-  permutation: NKM
-  split: 3
+- factors: M=4 K=8 N=1
+  permutation: KMN
+  split: 2
   target: PE_buffer
   type: spatial
+- bypass:
+  - A
+  - Z
+  target: GlobelBuffer
+  type: datatype
 problem:
   instance:
-    K: 768
-    M: 768
-    N: 768
+    K: 256
+    M: 256
+    N: 256
     densities:
       A:
-        density: 0.118
+        density: 0.809
         distribution: fixed-structured
       B:
-        density: 0.118
+        density: 0.809
         distribution: fixed-structured
   shape:
     data-spaces:
@@ -118,21 +123,20 @@ sparse_optimizations:
         - format: UOP
         - format: UOP
         - format: UOP
-        - format: B
+        - format: UOP
+        - format: RLE
         - format: RLE
         - format: CP
-        - format: B
         - format: RLE
+        - format: CP
       - name: B
         ranks:
         - format: UOP
         - format: UOP
-        - format: UOP
-        - format: UOP
-        - format: B
+        - format: CP
         - format: CP
         - format: B
-        - format: CP
+        - format: RLE
         - format: B
   - name: GlobelBuffer
     representation-format:
@@ -141,42 +145,44 @@ sparse_optimizations:
         ranks:
         - format: UOP
         - format: UOP
-        - format: B
+        - format: RLE
         - format: RLE
         - format: CP
-        - format: B
         - format: RLE
+        - format: CP
       - name: B
         ranks:
         - format: UOP
-        - format: UOP
-        - format: UOP
-        - format: B
+        - format: CP
         - format: CP
         - format: B
-        - format: CP
+        - format: RLE
         - format: B
   - name: PE_buffer
     representation-format:
       data-spaces:
       - name: A
         ranks:
+        - format: CP
         - format: RLE
         - format: CP
-        - format: B
-        - format: RLE
       - name: B
         ranks:
-        - format: CP
+        - format: RLE
         - format: B
-        - format: CP
-        - format: B
+  - action-optimization:
+    - options:
+      - condition-on:
+        - B
+        target: A
+      type: skipping
+    name: GlobelBuffer
   - action-optimization:
     - options:
       - condition-on:
         - A
         target: B
-      type: gating
+      type: skipping
     name: GlobelBuffer
   - compute-optimization:
     - type: skipping

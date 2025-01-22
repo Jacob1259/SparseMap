@@ -54,129 +54,169 @@ architecture:
         name: PE[0..127]
   version: 0.3
 mapping:
-- factors: M=1 K=1 N=1
-  permutation: KMN
+- factors: C=4 M=1 N=1 P=1 Q=1 R=3 S=1
+  permutation: MCPSNRQ
   target: DRAM
   type: temporal
-- factors: M=12 K=2 N=24
-  permutation: MNK
+- factors: C=8 M=4 N=1 P=1 Q=3 R=1 S=3
+  permutation: QCMRSPN
   target: GlobelBuffer
   type: temporal
-- factors: M=8 K=96 N=4
-  permutation: NMK
-  split: 3
+- factors: C=2 M=2 N=1 P=6 Q=3 R=1 S=1
+  permutation: CRPNMSQ
+  split: 1
   target: GlobelBuffer
   type: spatial
-- factors: M=4 K=4 N=4
-  permutation: MKN
+- factors: C=2 M=8 N=1 P=3 Q=6 R=1 S=1
+  permutation: PMCRQSN
   target: PE_buffer
   type: temporal
-- factors: M=2 K=1 N=2
-  permutation: KNM
-  split: 0
+- factors: C=1 M=4 N=1 P=3 Q=1 R=1 S=1
+  permutation: MCRSNPQ
+  split: 1
   target: PE_buffer
   type: spatial
 - bypass:
-  - A
-  - B
-  - Z
+  - Inputs
+  target: GlobelBuffer
+  type: datatype
+- bypass:
+  - Inputs
   target: PE_buffer
   type: datatype
 problem:
   instance:
-    K: 768
-    M: 768
-    N: 768
+    C: 128
+    Hdilation: 1
+    Hstride: 1
+    M: 256
+    N: 1
+    P: 54
+    Q: 54
+    R: 3
+    S: 3
+    Wdilation: 1
+    Wstride: 1
     densities:
-      A:
-        density: 0.118
-        distribution: fixed-structured
-      B:
-        density: 0.118
-        distribution: fixed-structured
+      Inputs: 0.454
+      Outputs: 0.999
+      Weights: 0.37
   shape:
+    coefficients:
+    - default: 1
+      name: Wstride
+    - default: 1
+      name: Hstride
+    - default: 1
+      name: Wdilation
+    - default: 1
+      name: Hdilation
     data-spaces:
-    - name: A
+    - name: Weights
       projection:
+      - - - C
       - - - M
-      - - - K
-    - name: B
+      - - - R
+      - - - S
+    - name: Inputs
       projection:
       - - - N
-      - - - K
-    - name: Z
+      - - - C
+      - - - R
+          - Wdilation
+        - - P
+          - Wstride
+      - - - S
+          - Hdilation
+        - - Q
+          - Hstride
+    - name: Outputs
       projection:
-      - - - M
       - - - N
+      - - - M
+      - - - Q
+      - - - P
       read-write: true
     dimensions:
+    - C
     - M
+    - R
+    - S
     - N
-    - K
-    name: MatrixMultiply
+    - P
+    - Q
+    name: CNN-Layer
 sparse_optimizations:
   targets:
   - name: DRAM
     representation-format:
       data-spaces:
-      - name: A
+      - name: Inputs
         ranks:
         - format: UOP
         - format: UOP
-        - format: B
-        - format: B
-        - format: RLE
-        - format: B
-        - format: B
-      - name: B
-        ranks:
+        - format: UOP
+        - format: UOP
+        - format: UOP
         - format: UOP
         - format: UOP
         - format: CP
-        - format: B
+        - format: RLE
+        - format: RLE
+        - format: RLE
+        - format: RLE
+      - name: Weights
+        ranks:
+        - format: UOP
+        - format: UOP
+        - format: UOP
+        - format: UOP
+        - format: UOP
+        - format: CP
         - format: RLE
         - format: RLE
         - format: B
+        - format: RLE
   - name: GlobelBuffer
     representation-format:
       data-spaces:
-      - name: A
+      - name: Inputs
         ranks:
         - format: UOP
         - format: UOP
-        - format: B
-        - format: B
-        - format: RLE
-        - format: B
-        - format: B
-      - name: B
-        ranks:
+        - format: UOP
         - format: UOP
         - format: UOP
         - format: CP
-        - format: B
         - format: RLE
         - format: RLE
+        - format: RLE
+        - format: RLE
+      - name: Weights
+        ranks:
+        - format: RLE
         - format: B
+        - format: RLE
   - name: PE_buffer
     representation-format:
       data-spaces:
-      - name: A
-        ranks:
-        - format: RLE
-        - format: B
-        - format: B
-      - name: B
+      - name: Inputs
         ranks:
         - format: RLE
         - format: RLE
+        - format: RLE
+        - format: RLE
+      - name: Weights
+        ranks:
+        - format: RLE
         - format: B
+        - format: RLE
   - action-optimization:
     - options:
       - condition-on:
-        - B
-        target: A
-      type: skipping
+        - Weights
+        target: Inputs
+      type: gating
     name: GlobelBuffer
   - compute-optimization:
     - type: skipping

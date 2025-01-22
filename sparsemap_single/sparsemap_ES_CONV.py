@@ -21,22 +21,22 @@ import nevergrad as ng
 
 OVERWRITE = 1
 
-dimensions = {'C': 512, 
-              'M': 2048, 
+dimensions = {'C': 128, 
+              'M': 256, 
               'N': 1, 
-              'P': 4, 
-              'Q': 4, 
+              'P': 54, 
+              'Q': 54, 
               'R': 3, 
               'S': 3}
-JOB = "resnet_conv"              #高层次
-WORK_LOAD = "workload_resnet_conv7"        #低层次
-PLATFORM = "cloud"
-N_GENERATIONS = 10
+JOB = "vgg_conv"              #高层次
+WORK_LOAD = "workload_vgg_layer5"        #低层次
+PLATFORM = "edge"
+N_GENERATIONS = 5
 POP_SIZE = 100           # population size
 N_KID = 50               # n kids per generation
 
-#OBJECT = 'cycles'       #优化目标
-OBJECT = 'edp'
+OBJECT = 'cycles'       #优化目标
+#OBJECT = 'edp'
 '''
     'problem': problem,
     'utilization': arithmetic_utilization,

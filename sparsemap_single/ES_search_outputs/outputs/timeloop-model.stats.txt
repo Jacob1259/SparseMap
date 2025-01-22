@@ -7,20 +7,20 @@ Level 0
     SPECS
     -----
     Word bits             : 32
-    Instances             : 65536 (1024*64)
+    Instances             : 256 (16*16)
     Compute energy        : 2.20 pJ
 
     STATS
     -----
-    Utilized instances (max)     : 32
-    Utilized instances (average) : 32.00
-    Cycles                       : 197106
-    Algorithmic Computes (total) : 452984832
-    Actual Computes (total)      : 6307362
+    Utilized instances (max)     : 128
+    Utilized instances (average) : 128.00
+    Cycles                       : 85785
+    Algorithmic Computes (total) : 16777216
+    Actual Computes (total)      : 10980370
     Gated Computes (total)       : 0
-    Skipped Computes (total)     : 94289698
-    Energy (total)               : 20096809.56 pJ
-    Area (total)                 : 81231872.00 um^2
+    Skipped Computes (total)     : 5184797
+    Energy (total)               : 24502594.49 pJ
+    Area (total)                 : 317312.00 um^2
 
 Level 1
 -------
@@ -29,61 +29,21 @@ Level 1
     SPECS
     -----
         Technology                   : SRAM
-        Data storage size            : 2000
+        Data storage size            : 20
         Data word bits               : 32
         Data block size              : 1
         Metadata storage width(bits) : 190
-        Metadata storage depth       : 2000
+        Metadata storage depth       : 20
         Cluster size                 : 10
-        Instances                    : 1024 (32*32)
+        Instances                    : 128 (16*8)
         Shared bandwidth             : -
         Read bandwidth               : -
         Write bandwidth              : -
         Multiple buffering           : 1.00
-        Effective data storage size  : 2000
+        Effective data storage size  : 20
         Min utilization              : 0.00
-        Vector read energy           : 9.80 pJ
-        Vector write energy          : 9.80 pJ
-        Vector metadata read energy  : 0.00 pJ
-        Vector metadata write energy : 0.00 pJ
-        (De)compression energy       : 0.00 pJ
-        Area                         : 0.00 um^2
-
-    MAPPING
-    -------
-    Loop nest:
-      for N in [0:4)
-        for K in [0:8)
-          for M in [0:4)
-            for M in [0:2) (Spatial-X)
-
-    STATS
-    -----
-    Cycles               : 197106
-    Bandwidth throttling : 1.00
-
-Level 2
--------
-=== GlobelBuffer ===
-
-    SPECS
-    -----
-        Technology                   : SRAM
-        Data storage size            : 1000000
-        Data word bits               : 32
-        Data block size              : 100
-        Metadata storage width(bits) : 1920
-        Metadata storage depth       : 10000
-        Cluster size                 : 1
-        Instances                    : 1 (1*1)
-        Shared bandwidth             : -
-        Read bandwidth               : 8.00
-        Write bandwidth              : 8.00
-        Multiple buffering           : 1.00
-        Effective data storage size  : 1000000
-        Min utilization              : 0.00
-        Vector read energy           : 39453.77 pJ
-        Vector write energy          : 39453.77 pJ
+        Vector read energy           : 2.03 pJ
+        Vector write energy          : 2.03 pJ
         Vector metadata read energy  : 0.00 pJ
         Vector metadata write energy : 0.00 pJ
         (De)compression energy       : 0.00 pJ
@@ -93,16 +53,96 @@ Level 2
     -------
     Loop nest:
       for N in [0:8)
-        for M in [0:8)
-          for K in [0:12)
+        for M in [0:2)
+          for K in [0:4)
             for N in [0:4) (Spatial-Y)
-              for K in [0:2) (Spatial-Y)
-                for M in [0:2) (Spatial-X)
+              for M in [0:4) (Spatial-Y)
+                for K in [0:4) (Spatial-X)
 
     STATS
     -----
-    Cycles               : 197106
+    Cycles               : 85785
     Bandwidth throttling : 1.00
+
+Level 2
+-------
+=== GlobelBuffer ===
+
+    SPECS
+    -----
+        Technology                   : SRAM
+        Data storage size            : 10000
+        Data word bits               : 32
+        Data block size              : 100
+        Metadata storage width(bits) : 1920
+        Metadata storage depth       : 100
+        Cluster size                 : 1
+        Instances                    : 1 (1*1)
+        Shared bandwidth             : -
+        Read bandwidth               : 8.00
+        Write bandwidth              : 8.00
+        Multiple buffering           : 1.00
+        Effective data storage size  : 10000
+        Min utilization              : 0.00
+        Vector read energy           : 587.56 pJ
+        Vector write energy          : 587.56 pJ
+        Vector metadata read energy  : 0.00 pJ
+        Vector metadata write energy : 0.00 pJ
+        (De)compression energy       : 0.00 pJ
+        Area                         : 0.00 um^2
+
+    MAPPING
+    -------
+    Loop nest:
+      for K in [0:16)
+        for M in [0:8)
+          for N in [0:2)
+            for N in [0:2) (Spatial-X)
+
+    STATS
+    -----
+    Cycles               : 139264
+    Bandwidth throttling : 0.62
+    Z:
+        Partition size                                              : 65536
+        Tile density distribution                                   : fixed-structured
+        Data tile shape                                             : 8192
+        Max utilized data storage capacity                          : 8192
+        Representation format                                       : none
+        Max utilized Repr format storage capacity                   : 0
+        Utilized instances (max)                                    : 1
+        Utilized instances (average)                                : 1.00
+        Utilized clusters (max)                                     : 1
+        Algorithmic scalar reads (per-instance)                     : 983040
+        Actual scalar reads (per-instance)                          : 983040
+        Gated scalar reads (per-instance)                           : 0
+        Skipped scalar reads (per-instance)                         : 0
+        Algorithmic scalar fills (per-instance)                     : 65536
+        Actual scalar fills (per-instance)                          : 65536
+        Gated scalar fills (per-instance)                           : 0
+        Skipped scalar fills (per-instance)                         : 0
+        Algorithmic scalar updates (per-instance)                   : 1048576
+        Actual scalar updates (per-instance)                        : 1048576
+        Gated scalar updates (per-instance)                         : 0
+        Skipped scalar updates (per-instance)                       : 0
+        Temporal reductions (per-instance)                          : 983040
+        Address generations (per-cluster)                           : 1114112
+        Energy (per-scalar-access)                                  : 5.88 pJ
+        Energy (per-instance)                                       : 12322954.90 pJ
+        Energy (total)                                              : 12322954.90 pJ
+        Temporal Reduction Energy (per-instance)                    : 0.00 pJ
+        Temporal Reduction Energy (total)                           : 0.00 pJ
+        Address Generation Energy (per-cluster)                     : 0.00 pJ
+        Address Generation Energy (total)                           : 0.00 pJ
+        Average Shared Bandwidth (per-instance)                     : 15.06 words/cycle
+            Breakdown (Data, Format): (100.00%, 0.00%)
+        Shared Bandwidth (total)                                    : 15.06 words/cycle
+        Average Read Bandwidth (per-instance)                       : 7.06 words/cycle
+            Breakdown (Data, Format): (100.00%, 0.00%)
+        Read Bandwidth (total)                                      : 7.06 words/cycle
+        Average Write Bandwidth (per-instance)                      : 8.00 words/cycle
+            Breakdown (Data, Format): (100.00%, 0.00%)
+        Write Bandwidth (total)                                     : 8.00 words/cycle
 
 Level 3
 -------
@@ -134,35 +174,32 @@ Level 3
     MAPPING
     -------
     Loop nest:
-      for K in [0:4)
-        for M in [0:6)
-          for N in [0:6)
+      for M in [0:4)
+        for N in [0:2)
 
     STATS
     -----
-    Cycles               : 197106
+    Cycles               : 85785
     Bandwidth throttling : 1.00
     A:
-        Partition size                                              : 589824
+        Partition size                                              : 65536
         Tile density distribution                                   : fixed-structured
-        Data tile shape                                             : 589824
-        Max utilized data storage capacity                          : 69600
-        Representation format                                       : uop uop uop uop b b cp rle b 
+        Data tile shape                                             : 65536
+        Max utilized data storage capacity                          : 53019
+        Representation format                                       : uop uop cp cp cp rle cp 
         Max utilized Repr format storage capacity                   
-            Rank 8 (metadata, payload): (0, 5)
-            Rank 7 (metadata, payload): (0, 28)
-            Rank 6 (metadata, payload): (0, 216)
-            Rank 5 (metadata, payload): (0, 2496)
-            Rank 4 (metadata, payload): (4608, 4608)
-            Rank 3 (metadata, payload): (9216, 9216)
-            Rank 2 (metadata, payload): (69600, 69600)
-            Rank 1 (metadata, payload): (69600, 69600)
-            Rank 0 (metadata, payload): (139200, 0)
+            Rank 6 (metadata, payload): (0, 5)
+            Rank 5 (metadata, payload): (0, 68)
+            Rank 4 (metadata, payload): (512, 512)
+            Rank 3 (metadata, payload): (1024, 1024)
+            Rank 2 (metadata, payload): (4096, 4096)
+            Rank 1 (metadata, payload): (16384, 16384)
+            Rank 0 (metadata, payload): (53019, 0)
         Utilized instances (max)                                    : 1
         Utilized instances (average)                                : 1.00
         Utilized clusters (max)                                     : 1
-        Algorithmic scalar reads (per-instance)                     : 113246208
-        Actual scalar reads (per-instance)                          : 13363053
+        Algorithmic scalar reads (per-instance)                     : 2097152
+        Actual scalar reads (per-instance)                          : 1696596
         Gated scalar reads (per-instance)                           : 0
         Skipped scalar reads (per-instance)                         : 0
         Algorithmic scalar fills (per-instance)                     : 0
@@ -174,15 +211,13 @@ Level 3
         Gated scalar updates (per-instance)                         : 0
         Skipped scalar updates (per-instance)                       : 0
         Actual scalar format reads (per-instance)                   
-            Rank 8 (metadata, payload): (0,  960)
-            Rank 7 (metadata, payload): (0,  5376)
-            Rank 6 (metadata, payload): (0,  41472)
-            Rank 5 (metadata, payload): (0,  479232)
-            Rank 4 (metadata, payload): (884736,  884736)
-            Rank 3 (metadata, payload): (1769472,  1769472)
-            Rank 2 (metadata, payload): (13363053,  13363053)
-            Rank 1 (metadata, payload): (13363053,  13363053)
-            Rank 0 (metadata, payload): (26726106,  0)
+            Rank 6 (metadata, payload): (0,  160)
+            Rank 5 (metadata, payload): (0,  2176)
+            Rank 4 (metadata, payload): (16384,  16384)
+            Rank 3 (metadata, payload): (32768,  32768)
+            Rank 2 (metadata, payload): (131072,  131072)
+            Rank 1 (metadata, payload): (524288,  524288)
+            Rank 0 (metadata, payload): (1696596,  0)
         Gated scalar format reads (per-instance)                    : 0
         Skipped scalar format reads (per-instance)                  : 0
         Actual scalar format fills (per-instance)                   : 0
@@ -192,43 +227,43 @@ Level 3
         Gated scalar format updates (per-instance)                  : 0
         Skipped scalar format updates (per-instance)                : 0
         Temporal reductions (per-instance)                          : 0
-        Address generations (per-cluster)                           : 13363053
+        Address generations (per-cluster)                           : 1696596
         Energy (per-scalar-access)                                  : 2.50 pJ
-        Energy (per-instance)                                       : 33354297.60 pJ
-        Energy (total)                                              : 33354297.60 pJ
+        Energy (per-instance)                                       : 4234713.60 pJ
+        Energy (total)                                              : 4234713.60 pJ
         Temporal Reduction Energy (per-instance)                    : 0.00 pJ
         Temporal Reduction Energy (total)                           : 0.00 pJ
         Address Generation Energy (per-cluster)                     : 0.00 pJ
         Address Generation Energy (total)                           : 0.00 pJ
-        Average Shared Bandwidth (per-instance)                     : 162.24 words/cycle
-            Breakdown (Data, Format): (41.79%, 58.21%)
-        Shared Bandwidth (total)                                    : 162.24 words/cycle
-        Average Read Bandwidth (per-instance)                       : 162.24 words/cycle
-            Breakdown (Data, Format): (41.79%, 58.21%)
-        Read Bandwidth (total)                                      : 162.24 words/cycle
+        Average Shared Bandwidth (per-instance)                     : 31.10 words/cycle
+            Breakdown (Data, Format): (63.59%, 36.41%)
+        Shared Bandwidth (total)                                    : 31.10 words/cycle
+        Average Read Bandwidth (per-instance)                       : 31.10 words/cycle
+            Breakdown (Data, Format): (63.59%, 36.41%)
+        Read Bandwidth (total)                                      : 31.10 words/cycle
         Average Write Bandwidth (per-instance)                      : 0.00 words/cycle
             Breakdown (Data, Format): (100.00%, 0.00%)
         Write Bandwidth (total)                                     : 0.00 words/cycle
     B:
-        Partition size                                              : 589824
+        Partition size                                              : 65536
         Tile density distribution                                   : fixed-structured
-        Data tile shape                                             : 589824
-        Max utilized data storage capacity                          : 69600
-        Representation format                                       : uop uop uop b b cp b cp 
+        Data tile shape                                             : 65536
+        Max utilized data storage capacity                          : 53019
+        Representation format                                       : uop uop uop rle b b cp cp 
         Max utilized Repr format storage capacity                   
-            Rank 7 (metadata, payload): (0, 5)
-            Rank 6 (metadata, payload): (0, 28)
-            Rank 5 (metadata, payload): (0, 216)
-            Rank 4 (metadata, payload): (2304, 2304)
-            Rank 3 (metadata, payload): (9216, 9216)
-            Rank 2 (metadata, payload): (18432, 18432)
-            Rank 1 (metadata, payload): (73728, 73728)
-            Rank 0 (metadata, payload): (69601, 0)
+            Rank 7 (metadata, payload): (0, 3)
+            Rank 6 (metadata, payload): (0, 34)
+            Rank 5 (metadata, payload): (0, 96)
+            Rank 4 (metadata, payload): (128, 128)
+            Rank 3 (metadata, payload): (1024, 1024)
+            Rank 2 (metadata, payload): (4096, 4096)
+            Rank 1 (metadata, payload): (16384, 16384)
+            Rank 0 (metadata, payload): (53019, 0)
         Utilized instances (max)                                    : 1
         Utilized instances (average)                                : 1.00
         Utilized clusters (max)                                     : 1
-        Algorithmic scalar reads (per-instance)                     : 28311552
-        Actual scalar reads (per-instance)                          : 3340764
+        Algorithmic scalar reads (per-instance)                     : 4194304
+        Actual scalar reads (per-instance)                          : 3393192
         Gated scalar reads (per-instance)                           : 0
         Skipped scalar reads (per-instance)                         : 0
         Algorithmic scalar fills (per-instance)                     : 0
@@ -240,14 +275,14 @@ Level 3
         Gated scalar updates (per-instance)                         : 0
         Skipped scalar updates (per-instance)                       : 0
         Actual scalar format reads (per-instance)                   
-            Rank 7 (metadata, payload): (0,  240)
-            Rank 6 (metadata, payload): (0,  1344)
-            Rank 5 (metadata, payload): (0,  10368)
-            Rank 4 (metadata, payload): (110592,  110592)
-            Rank 3 (metadata, payload): (442368,  442368)
-            Rank 2 (metadata, payload): (884736,  884736)
-            Rank 1 (metadata, payload): (3538944,  3538944)
-            Rank 0 (metadata, payload): (3340764,  0)
+            Rank 7 (metadata, payload): (0,  192)
+            Rank 6 (metadata, payload): (0,  2176)
+            Rank 5 (metadata, payload): (0,  6144)
+            Rank 4 (metadata, payload): (8192,  8192)
+            Rank 3 (metadata, payload): (65536,  65536)
+            Rank 2 (metadata, payload): (262144,  262144)
+            Rank 1 (metadata, payload): (1048576,  1048576)
+            Rank 0 (metadata, payload): (3393192,  0)
         Gated scalar format reads (per-instance)                    : 0
         Skipped scalar format reads (per-instance)                  : 0
         Actual scalar format fills (per-instance)                   : 0
@@ -257,63 +292,63 @@ Level 3
         Gated scalar format updates (per-instance)                  : 0
         Skipped scalar format updates (per-instance)                : 0
         Temporal reductions (per-instance)                          : 0
-        Address generations (per-cluster)                           : 3340764
+        Address generations (per-cluster)                           : 3393192
         Energy (per-scalar-access)                                  : 2.50 pJ
-        Energy (per-instance)                                       : 8338636.80 pJ
-        Energy (total)                                              : 8338636.80 pJ
+        Energy (per-instance)                                       : 8469427.20 pJ
+        Energy (total)                                              : 8469427.20 pJ
         Temporal Reduction Energy (per-instance)                    : 0.00 pJ
         Temporal Reduction Energy (total)                           : 0.00 pJ
         Address Generation Energy (per-cluster)                     : 0.00 pJ
         Address Generation Energy (total)                           : 0.00 pJ
-        Average Shared Bandwidth (per-instance)                     : 32.21 words/cycle
-            Breakdown (Data, Format): (52.63%, 47.37%)
-        Shared Bandwidth (total)                                    : 32.21 words/cycle
-        Average Read Bandwidth (per-instance)                       : 32.21 words/cycle
-            Breakdown (Data, Format): (52.63%, 47.37%)
-        Read Bandwidth (total)                                      : 32.21 words/cycle
+        Average Shared Bandwidth (per-instance)                     : 60.96 words/cycle
+            Breakdown (Data, Format): (64.89%, 35.11%)
+        Shared Bandwidth (total)                                    : 60.96 words/cycle
+        Average Read Bandwidth (per-instance)                       : 60.96 words/cycle
+            Breakdown (Data, Format): (64.89%, 35.11%)
+        Read Bandwidth (total)                                      : 60.96 words/cycle
         Average Write Bandwidth (per-instance)                      : 0.00 words/cycle
             Breakdown (Data, Format): (100.00%, 0.00%)
         Write Bandwidth (total)                                     : 0.00 words/cycle
     Z:
-        Partition size                                              : 589824
+        Partition size                                              : 65536
         Tile density distribution                                   : fixed-structured
-        Data tile shape                                             : 589824
-        Max utilized data storage capacity                          : 589824
+        Data tile shape                                             : 65536
+        Max utilized data storage capacity                          : 65536
         Representation format                                       : none
         Max utilized Repr format storage capacity                   : 0
         Utilized instances (max)                                    : 1
         Utilized instances (average)                                : 1.00
         Utilized clusters (max)                                     : 1
-        Algorithmic scalar reads (per-instance)                     : 225902592
-        Actual scalar reads (per-instance)                          : 225902592
+        Algorithmic scalar reads (per-instance)                     : 0
+        Actual scalar reads (per-instance)                          : 0
         Gated scalar reads (per-instance)                           : 0
         Skipped scalar reads (per-instance)                         : 0
         Algorithmic scalar fills (per-instance)                     : 0
         Actual scalar fills (per-instance)                          : 0
         Gated scalar fills (per-instance)                           : 0
         Skipped scalar fills (per-instance)                         : 0
-        Algorithmic scalar updates (per-instance)                   : 226492416
-        Actual scalar updates (per-instance)                        : 226492416
+        Algorithmic scalar updates (per-instance)                   : 65536
+        Actual scalar updates (per-instance)                        : 65536
         Gated scalar updates (per-instance)                         : 0
         Skipped scalar updates (per-instance)                       : 0
-        Temporal reductions (per-instance)                          : 225902592
-        Address generations (per-cluster)                           : 226492416
+        Temporal reductions (per-instance)                          : 0
+        Address generations (per-cluster)                           : 65536
         Energy (per-scalar-access)                                  : 2.50 pJ
-        Energy (per-instance)                                       : 1129178169.60 pJ
-        Energy (total)                                              : 1129178169.60 pJ
+        Energy (per-instance)                                       : 163737.60 pJ
+        Energy (total)                                              : 163737.60 pJ
         Temporal Reduction Energy (per-instance)                    : 0.00 pJ
         Temporal Reduction Energy (total)                           : 0.00 pJ
         Address Generation Energy (per-cluster)                     : 0.00 pJ
         Address Generation Energy (total)                           : 0.00 pJ
-        Average Shared Bandwidth (per-instance)                     : 2295.19 words/cycle
+        Average Shared Bandwidth (per-instance)                     : 0.76 words/cycle
             Breakdown (Data, Format): (100.00%, 0.00%)
-        Shared Bandwidth (total)                                    : 2295.19 words/cycle
-        Average Read Bandwidth (per-instance)                       : 1146.10 words/cycle
+        Shared Bandwidth (total)                                    : 0.76 words/cycle
+        Average Read Bandwidth (per-instance)                       : 0.00 words/cycle
             Breakdown (Data, Format): (100.00%, 0.00%)
-        Read Bandwidth (total)                                      : 1146.10 words/cycle
-        Average Write Bandwidth (per-instance)                      : 1149.09 words/cycle
+        Read Bandwidth (total)                                      : 0.00 words/cycle
+        Average Write Bandwidth (per-instance)                      : 0.76 words/cycle
             Breakdown (Data, Format): (100.00%, 0.00%)
-        Write Bandwidth (total)                                     : 1149.09 words/cycle
+        Write Bandwidth (total)                                     : 0.76 words/cycle
 
 Networks
 --------
@@ -336,8 +371,8 @@ DRAM <==> GlobelBuffer
         Fanout                                  : 1
         Fanout (distributed)                    : 0
         Multicast factor                        : 1
-        Ingresses                               : 113246208.00
-            @multicast 1 @scatter 1: 113246208.00
+        Ingresses                               : 2097152.00
+            @multicast 1 @scatter 1: 2097152.00
         Link transfers                          : 0
         Spatial reductions                      : 0
         Average number of hops                  : 0.50
@@ -352,8 +387,8 @@ DRAM <==> GlobelBuffer
         Fanout                                  : 1
         Fanout (distributed)                    : 0
         Multicast factor                        : 1
-        Ingresses                               : 28311552.00
-            @multicast 1 @scatter 1: 28311552.00
+        Ingresses                               : 4194304.00
+            @multicast 1 @scatter 1: 4194304.00
         Link transfers                          : 0
         Spatial reductions                      : 0
         Average number of hops                  : 0.50
@@ -368,8 +403,8 @@ DRAM <==> GlobelBuffer
         Fanout                                  : 1
         Fanout (distributed)                    : 0
         Multicast factor                        : 1
-        Ingresses                               : 452395008.00
-            @multicast 1 @scatter 1: 452395008.00
+        Ingresses                               : 65536.00
+            @multicast 1 @scatter 1: 65536.00
         Link transfers                          : 0
         Spatial reductions                      : 0
         Average number of hops                  : 0.50
@@ -397,14 +432,14 @@ GlobelBuffer <==> PE_buffer
     STATS
     -----
     A:
-        Fanout                                  : 16
+        Fanout                                  : 2
         Fanout (distributed)                    : 0
-        Multicast factor                        : 4
-        Ingresses                               : 113246208.00
-            @multicast 4 @scatter 4: 113246208.00
+        Multicast factor                        : 2
+        Ingresses                               : 2097152.00
+            @multicast 2 @scatter 1: 2097152.00
         Link transfers                          : 0
         Spatial reductions                      : 0
-        Average number of hops                  : 7.50
+        Average number of hops                  : 1.50
         Energy (per-hop)                        : 0.00 fJ
         Energy (per-instance)                   : 0.00 pJ
         Energy (total)                          : 0.00 pJ
@@ -413,14 +448,14 @@ GlobelBuffer <==> PE_buffer
         Spatial Reduction Energy (per-instance) : 0.00 pJ
         Spatial Reduction Energy (total)        : 0.00 pJ
     B:
-        Fanout                                  : 16
+        Fanout                                  : 2
         Fanout (distributed)                    : 0
-        Multicast factor                        : 2
-        Ingresses                               : 28311552.00
-            @multicast 2 @scatter 8: 28311552.00
+        Multicast factor                        : 1
+        Ingresses                               : 4194304.00
+            @multicast 1 @scatter 2: 4194304.00
         Link transfers                          : 0
         Spatial reductions                      : 0
-        Average number of hops                  : 4.62
+        Average number of hops                  : 0.71
         Energy (per-hop)                        : 0.00 fJ
         Energy (per-instance)                   : 0.00 pJ
         Energy (total)                          : 0.00 pJ
@@ -429,14 +464,14 @@ GlobelBuffer <==> PE_buffer
         Spatial Reduction Energy (per-instance) : 0.00 pJ
         Spatial Reduction Energy (total)        : 0.00 pJ
     Z:
-        Fanout                                  : 16
+        Fanout                                  : 2
         Fanout (distributed)                    : 0
-        Multicast factor                        : 2
-        Ingresses                               : 226492416.00
-            @multicast 2 @scatter 8: 226492416.00
+        Multicast factor                        : 1
+        Ingresses                               : 1048576.00
+            @multicast 1 @scatter 2: 1048576.00
         Link transfers                          : 0
-        Spatial reductions                      : 226492416
-        Average number of hops                  : 4.62
+        Spatial reductions                      : 0
+        Average number of hops                  : 0.71
         Energy (per-hop)                        : 0.00 fJ
         Energy (per-instance)                   : 0.00 pJ
         Energy (total)                          : 0.00 pJ
@@ -461,14 +496,14 @@ PE_buffer <==> MAC
     STATS
     -----
     A:
-        Fanout                                  : 2
+        Fanout                                  : 64
         Fanout (distributed)                    : 0
-        Multicast factor                        : 1
-        Ingresses                               : 28311552.00
-            @multicast 1 @scatter 2: 28311552.00
+        Multicast factor                        : 4
+        Ingresses                               : 2097152.00
+            @multicast 4 @scatter 16: 2097152.00
         Link transfers                          : 0
         Spatial reductions                      : 0
-        Average number of hops                  : 0.71
+        Average number of hops                  : 15.50
         Energy (per-hop)                        : 0.00 fJ
         Energy (per-instance)                   : 0.00 pJ
         Energy (total)                          : 0.00 pJ
@@ -477,14 +512,14 @@ PE_buffer <==> MAC
         Spatial Reduction Energy (per-instance) : 0.00 pJ
         Spatial Reduction Energy (total)        : 0.00 pJ
     B:
-        Fanout                                  : 2
+        Fanout                                  : 64
         Fanout (distributed)                    : 0
-        Multicast factor                        : 2
-        Ingresses                               : 3538944.00
-            @multicast 2 @scatter 1: 3538944.00
-        Link transfers                          : 21233664
+        Multicast factor                        : 4
+        Ingresses                               : 2097152.00
+            @multicast 4 @scatter 16: 2097152.00
+        Link transfers                          : 0
         Spatial reductions                      : 0
-        Average number of hops                  : 1.50
+        Average number of hops                  : 15.50
         Energy (per-hop)                        : 0.00 fJ
         Energy (per-instance)                   : 0.00 pJ
         Energy (total)                          : 0.00 pJ
@@ -493,14 +528,14 @@ PE_buffer <==> MAC
         Spatial Reduction Energy (per-instance) : 0.00 pJ
         Spatial Reduction Energy (total)        : 0.00 pJ
     Z:
-        Fanout                                  : 2
+        Fanout                                  : 64
         Fanout (distributed)                    : 0
-        Multicast factor                        : 1
-        Ingresses                               : 28311552.00
-            @multicast 1 @scatter 2: 28311552.00
-        Link transfers                          : 0
-        Spatial reductions                      : 0
-        Average number of hops                  : 0.71
+        Multicast factor                        : 4
+        Ingresses                               : 524288.00
+            @multicast 4 @scatter 16: 524288.00
+        Link transfers                          : 6291456
+        Spatial reductions                      : 1572864
+        Average number of hops                  : 15.50
         Energy (per-hop)                        : 0.00 fJ
         Energy (per-instance)                   : 0.00 pJ
         Energy (total)                          : 0.00 pJ
@@ -512,47 +547,49 @@ PE_buffer <==> MAC
 
 Operational Intensity Stats
 ---------------------------
-    Total elementwise ops                                                 : 6307362
-    Total reduction ops                                                   : 5717538
-    Total ops                                                             : 12024900
-    Total memory accesses required                                        : 729024
-    Optimal Op per Byte                                                   : 4.12
+    Total elementwise ops                                                 : 10980370
+    Total reduction ops                                                   : 10914834
+    Total ops                                                             : 21895204
+    Total memory accesses required                                        : 171574
+    Optimal Op per Byte                                                   : 31.90
 
 === PE_buffer ===
 === GlobelBuffer ===
+    Total scalar accesses                                                 : 2097152
+    Op per Byte                                                           : 2.61
 === DRAM ===
-    Total scalar accesses                                                 : 469098825
-    Op per Byte                                                           : 0.01
+    Total scalar accesses                                                 : 5155324
+    Op per Byte                                                           : 1.06
 
 
 Summary Stats
 -------------
-GFLOPs (@1GHz): 61.01
-Utilization: 0.00
-Cycles: 197106
-Energy: 1190.97 uJ
-EDP(J*cycle): 2.35e+02
-Area: 81.23 mm^2
+GFLOPs (@1GHz): 157.22
+Utilization: 0.31
+Cycles: 139264
+Energy: 49.69 uJ
+EDP(J*cycle): 6.92e+00
+Area: 0.32 mm^2
 
-Algorithmic Computes = 452984832
+Algorithmic Computes = 16777216
 pJ/Algorithmic-Compute
-    MAC                         = 0.04
+    MAC                         = 1.46
     PE_buffer                   = 0.00
-    GlobelBuffer                = 0.00
-    DRAM                        = 2.58
+    GlobelBuffer                = 0.73
+    DRAM                        = 0.77
     DRAM <==> GlobelBuffer      = 0.00
     GlobelBuffer <==> PE_buffer = 0.00
     PE_buffer <==> MAC          = 0.00
-    Total                       = 2.63
+    Total                       = 2.96
 
-Actual Computes = 6307362
+Actual Computes = 10980370
 pJ/Compute
-    MAC                         = 3.19
+    MAC                         = 2.23
     PE_buffer                   = 0.00
-    GlobelBuffer                = 0.00
-    DRAM                        = 185.64
+    GlobelBuffer                = 1.12
+    DRAM                        = 1.17
     DRAM <==> GlobelBuffer      = 0.00
     GlobelBuffer <==> PE_buffer = 0.00
     PE_buffer <==> MAC          = 0.00
-    Total                       = 188.82
+    Total                       = 4.53
 

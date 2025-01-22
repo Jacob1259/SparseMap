@@ -1,7 +1,7 @@
 mapper:
   algorithm: random
-  num-threads: 11
-  optimization-metric: edp
+  num-threads: 1
+  optimization-metric: delay
   search-size: 5000
   sync-interval: 5
   timeout: 0

@@ -12,6 +12,14 @@ import yaml
 import os
 import random
 from datetime import datetime
+import inspect
+from copy import deepcopy
+import shutil, argparse, pprint, sys, subprocess
+
+
+
+
+
 
 '''
 def square(x):
@@ -24,19 +32,37 @@ print(recommendation.value)
 '''
 
 
-import inspect
-from copy import deepcopy
-import shutil, argparse, pprint, sys, subprocess
-import random
-from datetime import datetime
+GLOBAL_MIN = 100000000000000000000000
 
 OVERWRITE = 1
-JOB = "resnet_conv"              #高层次
-WORK_LOAD = "workload_resnet_conv4"        #低层次
+JOB = "vgg_conv"              #高层次
+WORK_LOAD = "workload_vgg_layer1"        #低层次
 
-dimensions = {'C': 3, 'M': 96, 'N': 4, 'P': 54, 'Q': 54, 'R': 12, 'S': 12}
+dimensions = {'C': 3, 'M': 64, 'N': 1, 'P': 216, 'Q': 216, 'R': 3, 'S': 3}
 
 problem_template_path = os.path.join("/home/workspace/2022.micro.artifact/multiSCNN/sparsemap_single/yamls", JOB , WORK_LOAD + ".yaml")
+PLATFORM = "cloud"
+OBJECT = 'edp'
+'''
+    'problem': problem,
+    'utilization': arithmetic_utilization,
+    'cycles': max_cycles,
+    'energy_pJ': energy_pJ,
+    'energy_per_mac': energy_pJ/macs,
+    'macs': macs,
+    'energy_breakdown_pJ': energy_breakdown_pJ,
+    'bandwidth_and_cycles': bandwidth_and_cycles
+
+    '''
+
+
+this_file_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
+this_directory = os.path.dirname(this_file_path)
+
+problem_template_path = os.path.join(this_directory, "yamls", JOB , WORK_LOAD + ".yaml")
+sparse_opt_temp_path = os.path.join(this_directory, "yamls",  "sparse_opt_template.j2")
+sparse_opt_output_path = os.path.join(this_directory, "yamls",  "sparse_opt_example_conv.yaml")
+
 with open(problem_template_path, 'r') as file:
         workload_data = yaml.safe_load(file)
         d = workload_data['problem']['instance']
@@ -54,9 +80,6 @@ def prime_factorization(n):
         divisor += 1
 
     return factors
-
-
-
 
 cf = prime_factorization(dimensions['C'])
 mf = prime_factorization(dimensions['M'])
@@ -397,8 +420,8 @@ def evaluate(state):                                    #indi是长度63的np ar
 
     
     
-    problem_template_path = os.path.join(this_directory, "yamls", JOB , WORK_LOAD + ".yaml")
-    arch_path = os.path.join(this_directory, "yamls","arch_edge.yaml")
+    #problem_template_path = os.path.join(this_directory, "yamls", JOB , WORK_LOAD + ".yaml")
+    arch_path = os.path.join(this_directory, "yamls","arch_"+PLATFORM+".yaml")
     #component_path = os.path.join(this_directory, "..", "multiSCNN","fig13_dstc_setup","input_specs",  "compound_components.yaml")
     mapping_path = os.path.join(this_directory,"yamls", "mapping_conv_output_MCTS.yaml")
     #mapper_path = os.path.join(this_directory, "mapper.yaml")
@@ -417,7 +440,7 @@ def evaluate(state):                                    #indi是长度63的np ar
     #components = yaml.load(open(component_path), Loader = yaml.SafeLoader)
     mapping = yaml.load(open(mapping_path), Loader = yaml.SafeLoader)
     #mapper = yaml.load(open(mapper_path), Loader = yaml.SafeLoader)
-    #sparse_opt = yaml.load(open(sparse_opt_path), Loader = yaml.SafeLoader)
+    sparse_opt = yaml.load(open(sparse_opt_output_path), Loader = yaml.SafeLoader)
     
     output_base_dir = os.path.join(this_directory, "MCTS_search_outputs")
 
@@ -432,7 +455,7 @@ def evaluate(state):                                    #indi是长度63的np ar
     #aggregated_input.update(components)
     aggregated_input.update(mapping)
     #aggregated_input.update(mapper)
-    #aggregated_input.update(sparse_opt)
+    aggregated_input.update(sparse_opt)
     
     
     job_name  = "MCTS_searching"
@@ -444,7 +467,7 @@ def evaluate(state):                                    #indi是长度63的np ar
 
 #------------------------------------------------------读取数据--------------------------------------------------------------
 #++++++++++++++++++++++++++++++++++++++++++++++++本实验优化目标+++++++++++++++++++++++++++++++++++++++++
-    stat_type = "cycles"
+    stat_type = OBJECT
     '''
     'problem': problem,
     'utilization': arithmetic_utilization,
@@ -463,7 +486,10 @@ def evaluate(state):                                    #indi是长度63的np ar
     if os.path.exists(output_file_path):
         job_output_stats = parse_timeloop_stats(output_file_path)
         os.remove(output_file_path)
-        fitness = job_output_stats[stat_type]
+        if stat_type == "edp":
+            fitness = job_output_stats["cycles"]*job_output_stats["energy_pJ"]
+        else:
+            fitness = job_output_stats[stat_type]
     else:
         fitness = 10000000000000000000
     return fitness
@@ -478,20 +504,24 @@ root_state = {
     'split': [1,2]
 }
 
-def target(map_code,perm_code,bypass_choice):   #这里的code都是Numpy的  map是长度为mapping_encoding_len的一维，perm长度为5          优化目标函数
+def target(map_code,perm_code,bypass_choice,split):   #这里的code都是Numpy的  map是长度为mapping_encoding_len的一维，perm长度为5          优化目标函数
+    global GLOBAL_MIN
     state = root_state
     state['permutations'] = [cantor_decode(perm_code[i],7) for i in range(5) ]
     state['array'] = np.array(map_decode(map_code))
     state['bypass_choice'] = bypass_choice
+    state['split'] = split
     a = evaluate(state)
     if a != 10000000000000000000:
         print(a)
+        if a <  GLOBAL_MIN :
+            GLOBAL_MIN = a
     return a
 
 
 def main():
     initial_indi = {
-        "map_code": [0,1,4,1,4,1,1,2,4,2,4,2,4,2,1,2,1,1,1,2,2,2,3,0],  # 使用相同的初始值示例
+        "map_code": [2 ,3 ,4 ,4 ,4 ,4 ,4 ,0 ,0 ,0 ,1 ,2 ,2 ,0 ,3 ,0 ,1 ,2 ,1 ,1 ,2],  # 使用相同的初始值示例
         
         #"perm_code": [cantor_encode(root_state['permutations'][0]), 
          #           cantor_encode(root_state['permutations'][1]),
@@ -499,36 +529,33 @@ def main():
          #           cantor_encode(root_state['permutations'][3]),
          #           cantor_encode(root_state['permutations'][4])]  # 使用特定的初始值示例
 
-        "perm_code":[619,2524,3052,3619,91] ,
-        "bypass_choice" : [4,2]
+        "perm_code":[2524 ,4154 ,2270 ,3017 , 811] ,
+        "bypass_choice" : [5,5],
+        "split" : [1,1]
     }
    
     instrum = ng.p.Instrumentation(
         map_code = ng.p.Array(shape=(mapping_encoding_len,)).set_integer_casting().set_bounds(lower=0, upper=4),
         perm_code = ng.p.Array(shape=(5,)).set_integer_casting().set_bounds(lower=0, upper=5040),
-        bypass_choice = ng.p.Array(shape=(2,)).set_integer_casting().set_bounds(lower=0, upper=7)
+        bypass_choice = ng.p.Array(shape=(2,)).set_integer_casting().set_bounds(lower=0, upper=7),
+        split = ng.p.Array(shape=(2,)).set_integer_casting().set_bounds(lower=0, upper=3)
         )
 
 
     #print(child)
 
-    #optimizer = ng.optimizers.NGOpt(parametrization=instrum, budget=100)
+    #optimizer = ng.optimizers.PSO(parametrization=instrum, budget=20000)
     #optimizer = ng.optimizers.DifferentialEvolution()
-    #optimizer = ng.optimizers.TwoPointsDE(parametrization=instrum, budget=1000, num_workers=10)
-    #optimizer = ng.optimizers.TBPSA(parametrization=instrum, budget=1000, num_workers=10)
-    #optimizer = ng.optimizers.CMA(parametrization=instrum, budget=1000, num_workers=10)
+    optimizer = ng.optimizers.RandomSearch(parametrization=instrum, budget=20000, num_workers=10)
+    #optimizer = ng.optimizers.TBPSA(parametrization=instrum, budget=20000, num_workers=10)
+    #optimizer = ng.optimizers.CMA(parametrization=instrum, budget=20000, num_workers=10)
     #optimizer = ng.optimizers.PortfolioDiscreteOnePlusOne(parametrization=instrum, budget=1000, num_workers=10)
-    optimizer = ng.optimizers.OnePlusOne(parametrization=instrum, budget=50, num_workers=10)
+    #optimizer = ng.optimizers.OnePlusOne(parametrization=instrum, budget=20000, num_workers=10)
 
     
-    optimizer.suggest(map_code = initial_indi['map_code'], 
-                    perm_code = initial_indi['perm_code'],
-                    bypass_choice = initial_indi['bypass_choice'])
+    optimizer.suggest(map_code = initial_indi['map_code'],perm_code = initial_indi['perm_code'],bypass_choice = initial_indi['bypass_choice'],split = initial_indi['split'])
     
-
-    init_popu = [initial_indi for i in range(10) ] 
-    optimizer.internal_population = init_popu
-
+    
     for _ in range(optimizer.budget):
         x = optimizer.ask()
         if _ == 0 :
@@ -541,11 +568,14 @@ def main():
         optimizer.tell(x, loss)
 
     recommendation = optimizer.provide_recommendation()
-    print(recommendation)
+    
+    #recommendation = optimizer.minimize(target)
+    #print(recommendation)
     print(recommendation.value)
-    print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code'],recommendation.value[1]['bypass_choice']))
+    #print(target(recommendation.value[1]['map_code'],recommendation.value[1]['perm_code'],recommendation.value[1]['bypass_choice'],recommendation.value[1]['split']))
     #print(optimizer.llambda)
-    population = optimizer.ask()
+    #population = optimizer.ask()
+    print("best performance    =    ",GLOBAL_MIN)
     '''
     for i in range(len(population)):
         indi = population[i]

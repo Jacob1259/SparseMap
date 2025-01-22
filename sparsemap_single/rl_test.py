@@ -538,7 +538,7 @@ class ParameterOptimizationEnv(gym.Env):
         else:  # 否则执行减法操作
             self.state['map_code'][map_dim] = (self.state['map_code'][map_dim] - 1) % 5
         '''
-        if bypass_add == 1:  # 如果 bypass_add 为 1，执行加法操作
+        if bypass_add == 1:  # 如果 bypass_add 为 1  执行加法操作
             self.state['bypass_choice'][bypass_level] = (self.state['bypass_choice'][bypass_level] + 1) % 7
         else:  # 否则执行减法操作
             self.state['bypass_choice'][bypass_level] = (self.state['bypass_choice'][bypass_level] - 1) % 7

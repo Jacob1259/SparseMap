@@ -3,31 +3,40 @@
 mapping:
   - target: DRAM
     type: temporal
-    permutation: MKN
-    factors: M=1 K=2 N=1
+    permutation: MNK
+    factors: M=4 K=8 N=1
 
   - target: GlobelBuffer
     type: temporal
-    permutation: NKM
-    factors: M=4 K=12 N=4
+    permutation: NMK
+    factors: M=2 K=2 N=2
 
   - target: GlobelBuffer
     type: spatial
     permutation: KNM
     split: 1
-    factors: M=1 K=2 N=4
+    factors: M=2 K=2 N=4
 
   - target: PE_buffer
     type: temporal
-    permutation: KMN
-    factors: M=4 K=8 N=12
+    permutation: KNM
+    factors: M=4 K=1 N=32
 
   - target: PE_buffer
     type: spatial
-    permutation: NKM
-    split: 3
-    factors: M=48 K=2 N=4
+    permutation: KMN
+    split: 2
+    factors: M=4 K=8 N=1
 
+  
+  - target: GlobelBuffer
+    type: datatype
+    bypass:
+      
+        - A
+      
+        - Z
+      
   
 
   

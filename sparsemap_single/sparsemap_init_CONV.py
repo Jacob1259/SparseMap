@@ -20,14 +20,16 @@ import pandas as pd
 
 #五层存储的ES  此版本暂时只考虑mapping
 
+
 OVERWRITE = 1
-JOB = "resnet_conv"              #高层次
-WORK_LOAD = "workload_resnet_conv7"        #低层次
-N = 4                             #要多少个个体
+JOB = "vgg_conv"              #高层次
+WORK_LOAD = "workload_vgg_layer5"        #低层次
+N = 1                             #要多少个个体
 SEARCH_SIZE = 5000
 
 OBJECT = 'cycles'       #优化目标
-OBJECT = 'edp'       #优化目标
+NEED_MAPPING_YAML = 1
+#OBJECT = 'edp'       #优化目标
 '''
     'problem': problem,
     'utilization': arithmetic_utilization,
@@ -41,14 +43,16 @@ OBJECT = 'edp'       #优化目标
     '''
 #ALGO = 'random-pruned'
 ALGO = 'random'
-#PLATFORM = "edge"
-PLATFORM = "mobile"
+PLATFORM = "edge"
+#PLATFORM = "mobile"
 #PLATFORM = "cloud"
 WITH_CONSTRAINTS = 1
+MULTI_LAYER = 1
 
 N_GENERATIONS = 20
 POP_SIZE = 100           # population size
 N_KID = 50               # n kids per generation
+
 
 
 
@@ -57,7 +61,7 @@ this_directory = os.path.dirname(this_file_path)
 #print("this_directory = ",this_directory)
 problem_template_path = os.path.join(this_directory, "yamls", JOB , WORK_LOAD + ".yaml")
 constraints_template_path = os.path.join(this_directory, "yamls", "constraints_template.j2")
-
+other_layer_constraint_path = os.path.join(this_directory, "yamls", "constraints_vgg_layer6.yaml")      ###################################
 #print("problem_template_path = ",problem_template_path)
 #arch_path = os.path.join(this_directory,"sparsemap_single", "yamls", "DSTC-RF2x-24-bandwidth.yaml")
 if PLATFORM == "cloud": 
@@ -426,7 +430,10 @@ def run_mapper_once(ob):
     #components = yaml.load(open(component_path), Loader = yaml.SafeLoader)
     #mapping = yaml.load(open(mapping_path), Loader = yaml.SafeLoader)
     mapper = yaml.load(open(mapper_path), Loader = yaml.SafeLoader)
-    constraints = yaml.load(open(constraints_path), Loader = yaml.SafeLoader)
+    if MULTI_LAYER == 1:
+        constraints = yaml.load(open(other_layer_constraint_path), Loader = yaml.SafeLoader)
+    else:
+        constraints = yaml.load(open(constraints_path), Loader = yaml.SafeLoader)
     #sparse_opt = yaml.load(open(sparse_opt_path), Loader = yaml.SafeLoader)
     
     output_base_dir = os.path.join(this_directory, "outputs")
@@ -456,8 +463,9 @@ def run_mapper_once(ob):
         else:
             perfo = best_performance[ob]
         state = convert_yaml_to_state(reading_path)
-        os.remove(reading_path)
-        os.remove(xml_path)
+        if not NEED_MAPPING_YAML:
+            os.remove(reading_path)
+            os.remove(xml_path)
         return state,perfo
     else:
         return 0

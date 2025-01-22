@@ -1,22 +1,23 @@
 
-DRAM [ A:589824 (589824) B:589824 (589824) Z:589824 (589824) ] 
---------------------------------------------------------------
-| for K in [0:12)
-|   for M in [0:4)
-|     for N in [0:3)
+DRAM [ Weights:294912 (294912) Inputs:401408 (401408) Outputs:746496 (746496) ] 
+-------------------------------------------------------------------------------
+| for Q in [0:6)
+|   for S in [0:3)
+|     for P in [0:3)
+|       for C in [0:4)
+|         for M in [0:4)
 
-GlobelBuffer [ ] 
-----------------
-|       for N in [0:8)
-|         for M in [0:2)
-|           for M in [0:3) (Spatial-Y)
-|             for K in [0:4) (Spatial-Y)
-|               for N in [0:32) (Spatial-X)
+GlobelBuffer [ Inputs:5760 (5760) ] 
+-----------------------------------
+|           for C in [0:2)
+|             for Q in [0:9)
+|               for P in [0:2) (Spatial-Y)
+|                 for R in [0:3) (Spatial-Y)
+|                   for C in [0:16) (Spatial-X)
 
-PE_buffer [ ] 
--------------
-|                 for K in [0:2)
-|                   for M in [0:8)
-|                     for K in [0:8) (Spatial-X)
-|                       for M in [0:4) (Spatial-X)
+PE_buffer [ Inputs:9 (9) ] 
+--------------------------
+|                     for M in [0:32)
+|                       for P in [0:9)
+|                         for M in [0:2) (Spatial-Y)
 

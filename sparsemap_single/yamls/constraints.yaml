@@ -15,9 +15,9 @@ architecture_constraints:
       keep: []
       
   
-    - target: PE_buffer
+    - target: GlobelBuffer
       type: spatial
       
-      factors: M=32
+      factors: M=8
       
   

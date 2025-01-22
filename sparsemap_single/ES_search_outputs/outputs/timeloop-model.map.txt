@@ -1,23 +1,22 @@
 
-DRAM [ A:589824 (69600) B:589824 (69600) Z:589824 (589824) ] 
-------------------------------------------------------------
-| for K in [0:4)
-|   for M in [0:6)
-|     for N in [0:6)
+DRAM [ A:65536 (53019) B:65536 (53019) Z:65536 (65536) ] 
+--------------------------------------------------------
+| for M in [0:4)
+|   for N in [0:2)
 
-GlobelBuffer [ ] 
-----------------
-|       for N in [0:8)
-|         for M in [0:8)
-|           for K in [0:12)
-|             for N in [0:4) (Spatial-Y)
-|               for K in [0:2) (Spatial-Y)
-|                 for M in [0:2) (Spatial-X)
+GlobelBuffer [ Z:8192 (8192) ] 
+------------------------------
+|     for K in [0:16)
+|       for M in [0:8)
+|         for N in [0:2)
+|           for N in [0:2) (Spatial-X)
 
 PE_buffer [ ] 
 -------------
-|                   for N in [0:4)
-|                     for K in [0:8)
-|                       for M in [0:4)
-|                         for M in [0:2) (Spatial-X)
+|             for N in [0:8)
+|               for M in [0:2)
+|                 for K in [0:4)
+|                   for N in [0:4) (Spatial-Y)
+|                     for M in [0:4) (Spatial-Y)
+|                       for K in [0:4) (Spatial-X)
 
